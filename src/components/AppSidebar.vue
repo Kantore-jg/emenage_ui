@@ -95,23 +95,27 @@
             <i class="fas fa-user-edit"></i> <span class="sidebar-label">Mon profil</span>
           </router-link>
         </li>
-        <li>
-          <button @click="handleLogout" title="Déconnexion">
-            <i class="fas fa-sign-out-alt"></i> <span class="sidebar-label">Déconnexion</span>
-          </button>
-        </li>
       </template>
     </ul>
 
     <div v-if="isAuthenticated" class="sidebar-user">
-      <img v-if="user?.photo_profil" :src="apiBase + user.photo_profil" alt="">
-      <div v-else class="rounded-circle bg-secondary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px;">
-        <i class="fas fa-user text-white" style="font-size: 0.8rem;"></i>
+      <img
+        v-if="user?.photo_profil"
+        :src="userPhotoUrl"
+        alt=""
+        @error="photoError = true"
+        :style="{ display: photoError ? 'none' : 'block' }"
+      >
+      <div v-if="!user?.photo_profil || photoError" class="sidebar-user-avatar">
+        <i class="fas fa-user"></i>
       </div>
       <div class="sidebar-user-info sidebar-label">
         <div class="name">{{ user?.nom }}</div>
         <div class="role">{{ roleLabel }}</div>
       </div>
+      <button class="sidebar-logout-btn sidebar-label" @click="handleLogout" title="Déconnexion">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
     </div>
   </aside>
 
@@ -119,7 +123,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../stores/auth'
 
@@ -129,6 +133,18 @@ const emit = defineEmits(['close', 'toggle-collapse'])
 const { isAuthenticated, user, logout } = useAuth()
 const router = useRouter()
 const apiBase = 'http://localhost:8000'
+const photoError = ref(false)
+
+const userPhotoUrl = computed(() => {
+  const photo = user.value?.photo_profil
+  if (!photo) return ''
+  if (photo.startsWith('http')) return photo
+  return apiBase + photo
+})
+
+watch(() => user.value?.photo_profil, () => {
+  photoError.value = false
+})
 
 const roleLabels = {
   citoyen: 'Citoyen',
