@@ -16,20 +16,18 @@ const router = useRouter()
 
 onMounted(() => {
   const role = user.value?.role
-  switch (role) {
-    case 'citoyen':
-      router.replace('/dashboard/citoyen')
-      break
-    case 'chef_quartier':
-    case 'ministere':
-    case 'admin':
-      router.replace('/dashboard/gouvernement')
-      break
-    case 'police':
-      router.replace('/dashboard/securite')
-      break
-    default:
-      router.replace('/')
+  const authorityRoles = ['collinaire', 'zonal', 'communal', 'provincial', 'ministere', 'admin']
+
+  if (role === 'citoyen') {
+    router.replace('/dashboard/citoyen')
+  } else if (authorityRoles.includes(role)) {
+    router.replace('/dashboard/gouvernement')
+  } else if (role === 'police') {
+    router.replace('/dashboard/securite')
+  } else if (role === 'agent_recensement') {
+    router.replace('/census/collect')
+  } else {
+    router.replace('/')
   }
 })
 </script>

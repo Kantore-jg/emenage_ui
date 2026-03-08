@@ -43,7 +43,8 @@ import api from '../../services/api'
 const { user, isAuthenticated } = useAuth()
 const announcements = ref([])
 
-const canCreate = computed(() => isAuthenticated.value && ['chef_quartier', 'ministere', 'admin'].includes(user.value?.role))
+const authorityRoles = ['collinaire', 'zonal', 'communal', 'provincial', 'ministere', 'admin']
+const canCreate = computed(() => isAuthenticated.value && authorityRoles.includes(user.value?.role))
 
 function canEdit(a) {
   return isAuthenticated.value && (user.value?.id === a.author_id || user.value?.role === 'admin')

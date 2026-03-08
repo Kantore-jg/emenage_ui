@@ -49,11 +49,11 @@
           </li>
         </template>
 
-        <template v-if="user?.role === 'chef_quartier' || user?.role === 'admin'">
+        <template v-if="isAuthority">
           <li class="sidebar-section"><span class="sidebar-label">Gestion</span></li>
-          <li>
-            <router-link to="/chef/citoyens" @click="close" title="Inscrire un citoyen">
-              <i class="fas fa-user-plus"></i> <span class="sidebar-label">Inscrire un citoyen</span>
+          <li v-if="canRegisterUsers">
+            <router-link to="/users" @click="close" title="Gérer les utilisateurs">
+              <i class="fas fa-users-cog"></i> <span class="sidebar-label">Utilisateurs</span>
             </router-link>
           </li>
           <li>
@@ -61,9 +61,6 @@
               <i class="fas fa-house-user"></i> <span class="sidebar-label">Ménages</span>
             </router-link>
           </li>
-        </template>
-
-        <template v-if="['chef_quartier', 'ministere', 'admin'].includes(user?.role)">
           <li>
             <router-link to="/announcements/create" @click="close" title="Publier communiqué">
               <i class="fas fa-plus-circle"></i> <span class="sidebar-label">Publier communiqué</span>
@@ -71,20 +68,25 @@
           </li>
         </template>
 
-        <template v-if="user?.role === 'police' || user?.role === 'admin'">
-          <li class="sidebar-section"><span class="sidebar-label">Sécurité</span></li>
-          <li>
-            <router-link to="/dashboard/securite/scan" @click="close" title="Scanner QR">
-              <i class="fas fa-qrcode"></i> <span class="sidebar-label">Scanner QR</span>
+        <template v-if="isAuthority || user?.role === 'agent_recensement'">
+          <li class="sidebar-section"><span class="sidebar-label">Recensement</span></li>
+          <li v-if="isAuthority">
+            <router-link to="/censuses" @click="close" title="Campagnes">
+              <i class="fas fa-clipboard-list"></i> <span class="sidebar-label">Campagnes</span>
+            </router-link>
+          </li>
+          <li v-if="user?.role === 'agent_recensement'">
+            <router-link to="/census/collect" @click="close" title="Collecte terrain">
+              <i class="fas fa-clipboard-check"></i> <span class="sidebar-label">Mes campagnes</span>
             </router-link>
           </li>
         </template>
 
-        <template v-if="user?.role === 'admin'">
-          <li class="sidebar-section"><span class="sidebar-label">Administration</span></li>
-          <li>
-            <router-link to="/admin/users" @click="close" title="Gérer les utilisateurs">
-              <i class="fas fa-users-cog"></i> <span class="sidebar-label">Gérer les utilisateurs</span>
+        <template v-if="['police', 'admin'].includes(user?.role) || isAuthority">
+          <li class="sidebar-section" v-if="user?.role === 'police' || user?.role === 'admin'"><span class="sidebar-label">Sécurité</span></li>
+          <li v-if="user?.role === 'police' || user?.role === 'admin'">
+            <router-link to="/dashboard/securite/scan" @click="close" title="Scanner QR">
+              <i class="fas fa-qrcode"></i> <span class="sidebar-label">Scanner QR</span>
             </router-link>
           </li>
         </template>
@@ -135,6 +137,10 @@ const router = useRouter()
 const apiBase = 'http://localhost:8000'
 const photoError = ref(false)
 
+const authorityRoles = ['collinaire', 'zonal', 'communal', 'provincial', 'ministere', 'admin']
+const isAuthority = computed(() => authorityRoles.includes(user.value?.role))
+const canRegisterUsers = computed(() => authorityRoles.includes(user.value?.role))
+
 const userPhotoUrl = computed(() => {
   const photo = user.value?.photo_profil
   if (!photo) return ''
@@ -148,10 +154,14 @@ watch(() => user.value?.photo_profil, () => {
 
 const roleLabels = {
   citoyen: 'Citoyen',
-  chef_quartier: 'Chef de quartier',
+  collinaire: 'Collinaire',
+  zonal: 'Zonal',
+  communal: 'Communal',
+  provincial: 'Provincial',
   ministere: 'Ministère',
   admin: 'Administrateur',
   police: 'Police',
+  agent_recensement: 'Agent recensement',
 }
 const roleLabel = computed(() => roleLabels[user.value?.role] || user.value?.role)
 
