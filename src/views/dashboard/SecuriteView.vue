@@ -1,9 +1,6 @@
 <template>
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-shield-alt"></i> Dashboard Sécurité</h2>
-    <router-link to="/dashboard/securite/scan" class="btn btn-primary btn-lg">
-      <i class="fas fa-qrcode"></i> Scanner un QR Code
-    </router-link>
   </div>
 
   <div class="row">

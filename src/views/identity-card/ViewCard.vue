@@ -47,10 +47,6 @@
                 </div>
               </div>
             </div>
-            <div class="position-absolute" style="bottom: 20px; right: 20px; background: white; padding: 5px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-              <img :src="cardData.qrCodeImage" alt="QR Code" style="width: 120px; height: 120px;">
-              <div class="text-center text-dark" style="font-size: 0.6rem; font-weight: bold; margin-top: 2px;">SCAN POUR DÉTAILS</div>
-            </div>
             <div class="text-center mt-3 pt-2" style="border-top: 1px solid rgba(255,255,255,0.3);">
               <small style="font-size: 0.7rem;">Cette carte est valide uniquement avec présentation de pièce d'identité officielle</small>
             </div>

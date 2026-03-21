@@ -1,9 +1,7 @@
 <template>
   <!-- Login page: no sidebar -->
-  <div v-if="isLoginPage" class="login-layout">
-    <main class="flex-grow-1 d-flex align-items-center justify-content-center" style="min-height: 100vh;">
-      <router-view />
-    </main>
+  <div v-if="isLoginPage">
+    <router-view />
   </div>
 
   <!-- App layout with sidebar -->

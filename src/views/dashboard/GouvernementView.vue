@@ -2,26 +2,7 @@
   <h2 class="mb-4"><i class="fas fa-tachometer-alt"></i> Dashboard Gouvernement</h2>
 
   <div class="row">
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-header"><i class="fas fa-bell"></i> Notifications Récentes</div>
-        <div class="card-body" style="max-height: 500px; overflow-y: auto;">
-          <template v-if="notifications.length > 0">
-            <div v-for="n in notifications" :key="n.id" class="alert d-flex justify-content-between align-items-start" :class="n.lu ? 'alert-secondary' : 'alert-info'">
-              <div>
-                <strong>{{ n.titre }}</strong><br>
-                {{ n.message }}
-                <small class="d-block mt-1">{{ new Date(n.created_at).toLocaleString('fr-FR') }}</small>
-              </div>
-              <button @click="deleteNotification(n.id)" class="btn-close"></button>
-            </div>
-          </template>
-          <p v-else class="text-muted">Aucune notification</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-md-6">
+    <div class="col-12">
       <div class="card">
         <div class="card-header"><i class="fas fa-clock"></i> Enregistrements en Attente de Validation</div>
         <div class="card-body" style="max-height: 500px; overflow-y: auto;">
@@ -107,14 +88,12 @@ import { ref, onMounted } from 'vue'
 import api from '../../services/api'
 
 const apiBase = 'http://localhost:8000'
-const notifications = ref([])
 const nouveauxMembres = ref([])
 const nouveauxPaiements = ref([])
 
 async function loadData() {
   try {
     const { data } = await api.get('/dashboard/gouvernement')
-    notifications.value = data.notifications
     nouveauxMembres.value = data.nouveauxMembres
     nouveauxPaiements.value = data.nouveauxPaiements
   } catch (e) {
@@ -137,15 +116,6 @@ async function validatePayment(id, action) {
     await loadData()
   } catch (e) {
     alert(e.response?.data?.message || 'Erreur')
-  }
-}
-
-async function deleteNotification(id) {
-  try {
-    await api.delete(`/dashboard/notifications/${id}`)
-    notifications.value = notifications.value.filter(n => n.id !== id)
-  } catch (e) {
-    console.error(e)
   }
 }
 

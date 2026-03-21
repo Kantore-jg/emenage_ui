@@ -11,7 +11,7 @@
     </div>
 
     <ul class="sidebar-nav">
-      <li class="sidebar-section"><span class="sidebar-label">Navigation</span></li>
+      <!-- <li class="sidebar-section"><span class="sidebar-label">Navigation</span></li> -->
       <li>
         <router-link to="/" @click="close" title="Accueil">
           <i class="fas fa-home"></i> <span class="sidebar-label">Accueil</span>
@@ -50,7 +50,7 @@
         </template>
 
         <template v-if="isAuthority">
-          <li class="sidebar-section"><span class="sidebar-label">Gestion</span></li>
+          <!-- <li class="sidebar-section"><span class="sidebar-label">Gestion</span></li> -->
           <li v-if="canRegisterUsers">
             <router-link to="/users" @click="close" title="Gérer les utilisateurs">
               <i class="fas fa-users-cog"></i> <span class="sidebar-label">Utilisateurs</span>
@@ -69,7 +69,7 @@
         </template>
 
         <template v-if="isAuthority || user?.role === 'agent_recensement'">
-          <li class="sidebar-section"><span class="sidebar-label">Recensement</span></li>
+          <!-- <li class="sidebar-section"><span class="sidebar-label">Recensement</span></li> -->
           <li v-if="isAuthority">
             <router-link to="/censuses" @click="close" title="Campagnes">
               <i class="fas fa-clipboard-list"></i> <span class="sidebar-label">Campagnes</span>
@@ -82,16 +82,14 @@
           </li>
         </template>
 
-        <template v-if="['police', 'admin'].includes(user?.role) || isAuthority">
-          <li class="sidebar-section" v-if="user?.role === 'police' || user?.role === 'admin'"><span class="sidebar-label">Sécurité</span></li>
-          <li v-if="user?.role === 'police' || user?.role === 'admin'">
-            <router-link to="/dashboard/securite/scan" @click="close" title="Scanner QR">
-              <i class="fas fa-qrcode"></i> <span class="sidebar-label">Scanner QR</span>
-            </router-link>
-          </li>
-        </template>
-
         <li class="sidebar-section"><span class="sidebar-label">Compte</span></li>
+        <li class="sidebar-notif-item">
+          <router-link to="/notifications" @click="close" title="Notifications">
+            <i class="fas fa-bell"></i>
+            <span class="sidebar-label">Notifications</span>
+            <span v-if="unreadCount > 0" class="sidebar-notif-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+          </router-link>
+        </li>
         <li>
           <router-link to="/profile/edit" @click="close" title="Mon profil">
             <i class="fas fa-user-edit"></i> <span class="sidebar-label">Mon profil</span>
@@ -125,21 +123,35 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../stores/auth'
+import { useNotifications } from '../stores/notifications'
 
 defineProps({ isOpen: Boolean, isCollapsed: Boolean })
 const emit = defineEmits(['close', 'toggle-collapse'])
 
 const { isAuthenticated, user, logout } = useAuth()
+const { unreadCount, fetchNotifications } = useNotifications()
 const router = useRouter()
 const apiBase = 'http://localhost:8000'
 const photoError = ref(false)
+let pollInterval = null
 
 const authorityRoles = ['collinaire', 'zonal', 'communal', 'provincial', 'ministere', 'admin']
 const isAuthority = computed(() => authorityRoles.includes(user.value?.role))
 const canRegisterUsers = computed(() => authorityRoles.includes(user.value?.role))
+
+watch(isAuthenticated, (val) => {
+  if (val) {
+    fetchNotifications()
+    pollInterval = setInterval(fetchNotifications, 60000)
+  } else {
+    clearInterval(pollInterval)
+  }
+}, { immediate: true })
+
+onUnmounted(() => clearInterval(pollInterval))
 
 const userPhotoUrl = computed(() => {
   const photo = user.value?.photo_profil

@@ -34,30 +34,67 @@
     <p>Aucune campagne de recensement</p>
   </div>
 
-  <div v-else class="row g-3">
-    <div class="col-md-6 col-lg-4" v-for="c in censuses" :key="c.id">
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <h5 class="card-title mb-0">{{ c.titre }}</h5>
-            <span class="badge" :class="statutBadge(c.statut)">{{ c.statut }}</span>
-          </div>
-          <p v-if="c.description" class="text-muted small mb-2">{{ c.description?.substring(0, 100) }}{{ c.description?.length > 100 ? '...' : '' }}</p>
-          <div class="small text-muted mb-3">
-            <div v-if="c.geographic_area"><i class="fas fa-map-marker-alt"></i> {{ c.geographic_area.name }}</div>
-            <div v-if="c.date_debut"><i class="fas fa-calendar"></i> {{ formatDate(c.date_debut) }} → {{ c.date_fin ? formatDate(c.date_fin) : '...' }}</div>
-            <div><i class="fas fa-list"></i> {{ c.fields_count }} champs</div>
-            <div><i class="fas fa-users"></i> {{ c.agents_count }} agents</div>
-            <div><i class="fas fa-file-alt"></i> {{ c.responses_count }} réponses</div>
-          </div>
-        </div>
-        <div class="card-footer bg-transparent">
-          <router-link :to="`/censuses/${c.id}`" class="btn btn-outline-primary btn-sm w-100">
-            <i class="fas fa-eye"></i> Voir détails
-          </router-link>
-        </div>
-      </div>
-    </div>
+  <div v-else>
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Description</th>
+          <th>Statut</th>
+          <th>Aire géographique</th>
+          <th>Dates</th>
+          <th>Champs</th>
+          <th>Agents</th>
+          <th>Réponses</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="c in censuses" :key="c.id">
+          <td>{{ c.titre }}</td>
+          <td>
+            <span v-if="c.description">
+              {{ c.description?.substring(0, 100) }}<span v-if="c.description?.length > 100">...</span>
+            </span>
+          </td>
+          <td>
+            <span class="badge" :class="statutBadge(c.statut)">
+              {{ c.statut }}
+            </span>
+          </td>
+          <td>
+            <span v-if="c.geographic_area">
+              <i class="fas fa-map-marker-alt"></i> {{ c.geographic_area.name }}
+            </span>
+          </td>
+          <td>
+            <span v-if="c.date_debut">
+              <i class="fas fa-calendar"></i>
+              {{ formatDate(c.date_debut) }}
+              <span v-if="c.date_fin"> → {{ formatDate(c.date_fin) }}</span>
+              <span v-else> → ...</span>
+            </span>
+          </td>
+          <td>
+            <i class="fas fa-list"></i> {{ c.fields_count }}
+          </td>
+          <td>
+            <i class="fas fa-users"></i> {{ c.agents_count }}
+          </td>
+          <td>
+            <i class="fas fa-file-alt"></i> {{ c.responses_count }}
+          </td>
+          <td class="text-center">
+            <router-link :to="`/censuses/${c.id}`" class="btn btn-outline-primary btn-sm me-1 mb-1" title="Voir">
+              <i class="fas fa-eye"></i>
+            </router-link>
+            <button @click="deleteCensus(c.id)" class="btn btn-outline-danger btn-sm mb-1" title="Supprimer">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
@@ -84,6 +121,17 @@ async function load() {
     censuses.value = data.censuses || []
   } catch (e) { console.error(e) }
   finally { loading.value = false }
+}
+
+async function deleteCensus(id) {
+  if (!confirm('Êtes-vous sûr de vouloir supprimer cette campagne ?')) return
+  try {
+    await api.delete(`/censuses/${id}`)
+    censuses.value = censuses.value.filter(c => c.id !== id)
+  } catch (e) {
+    console.error(e)
+    alert('Erreur lors de la suppression.')
+  }
 }
 
 onMounted(load)

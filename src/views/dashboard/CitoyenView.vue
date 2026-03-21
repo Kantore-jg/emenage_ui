@@ -130,26 +130,6 @@
       </div>
     </div>
 
-    <!-- Notifications -->
-    <div v-if="notifications.length > 0" class="row mt-4">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header"><i class="fas fa-bell"></i> Notifications</div>
-          <div class="card-body">
-            <div v-for="n in notifications" :key="n.id" class="alert" :class="n.lu ? 'alert-secondary' : 'alert-info'" >
-              <div class="d-flex justify-content-between">
-                <div>
-                  <strong>{{ n.titre }}</strong><br>
-                  {{ n.message }}
-                  <small class="d-block mt-1">{{ new Date(n.created_at).toLocaleString('fr-FR') }}</small>
-                </div>
-                <button @click="deleteNotification(n.id)" class="btn-close"></button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </template>
 
   <!-- Modal Ajouter Membre -->
@@ -230,8 +210,6 @@ const apiBase = 'http://localhost:8000'
 const household = ref(null)
 const members = ref([])
 const invites = ref([])
-const notifications = ref([])
-
 const memberForm = reactive({ nom: '', age: '', telephone: '', photo_cni: null })
 const inviteForm = reactive({ nom: '', age: '', telephone: '' })
 
@@ -241,7 +219,6 @@ async function loadData() {
     household.value = data.household
     members.value = data.members
     invites.value = data.invites
-    notifications.value = data.notifications
   } catch (e) {
     console.error(e)
   }
@@ -290,15 +267,6 @@ async function deleteMember(id) {
     await loadData()
   } catch (e) {
     alert(e.response?.data?.message || 'Erreur')
-  }
-}
-
-async function deleteNotification(id) {
-  try {
-    await api.delete(`/dashboard/notifications/${id}`)
-    notifications.value = notifications.value.filter(n => n.id !== id)
-  } catch (e) {
-    console.error(e)
   }
 }
 

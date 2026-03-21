@@ -1,7 +1,7 @@
 :root {
     --primary-color: #2c5f2d;
     --secondary-color: #97bc62;
-    --accent-color: #f4a261;
+    --accent-color: #CE1126;
     --sidebar-width: 260px;
     --sidebar-collapsed-width: 68px;
     --bg-color: #f8f9fa;
@@ -261,9 +261,9 @@ body {
 
 .sidebar-nav li a.router-link-active,
 .sidebar-nav li a.active-link {
-    background: rgba(255,255,255,0.15);
+    background: rgba(206,17,38,0.15);
     color: white;
-    border-right: 3px solid var(--secondary-color);
+    border-right: 3px solid var(--accent-color);
     font-weight: 600;
 }
 
@@ -412,8 +412,8 @@ body {
     transition: all 0.3s;
 }
 .theme-toggle-btn:hover {
-    color: var(--accent-color);
-    border-color: var(--accent-color);
+    color: var(--secondary-color);
+    border-color: var(--secondary-color);
     transform: rotate(20deg);
 }
 [data-theme="dark"] .theme-toggle-btn {
@@ -484,6 +484,16 @@ body {
     border-color: #1e4220;
 }
 
+/* Nav tabs – Burundi flag active color */
+.nav-tabs .nav-link.active {
+    color: var(--accent-color);
+    border-bottom: 3px solid var(--accent-color);
+    font-weight: 600;
+}
+.nav-tabs .nav-link:hover:not(.active) {
+    border-bottom: 3px solid rgba(206,17,38,0.3);
+}
+
 .badge-status {
     padding: 0.5em 1em;
     border-radius: 20px;
@@ -502,6 +512,32 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Sidebar Notifications */
+.sidebar-notif-item {
+    position: relative;
+}
+.sidebar-notif-item a {
+    position: relative;
+}
+.sidebar-notif-badge {
+    background: #dc3545;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 0.1em 0.5em;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.4;
+    margin-left: auto;
+}
+.sidebar.collapsed .sidebar-notif-badge {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    margin-left: 0;
 }
 
 .jumbotron {
