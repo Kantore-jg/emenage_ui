@@ -10,93 +10,64 @@
       </button>
     </div>
 
-    <ul class="sidebar-nav">
-      <!-- <li class="sidebar-section"><span class="sidebar-label">Navigation</span></li> -->
-      <li>
-        <router-link to="/" @click="close" title="Accueil">
-          <i class="fas fa-home"></i> <span class="sidebar-label">Accueil</span>
-        </router-link>
-      </li>
-      <li>
-        <router-link to="/announcements" @click="close" title="Communiqués">
-          <i class="fas fa-bullhorn"></i> <span class="sidebar-label">Communiqués</span>
-        </router-link>
-      </li>
+    <nav class="sidebar-nav">
+      <router-link to="/" @click="close" title="Accueil" class="sidebar-link">
+        <i class="fas fa-home"></i> <span class="sidebar-label">Accueil</span>
+      </router-link>
+      <router-link to="/announcements" @click="close" title="Communiqués" class="sidebar-link">
+        <i class="fas fa-bullhorn"></i> <span class="sidebar-label">Communiqués</span>
+      </router-link>
 
       <template v-if="isAuthenticated">
-        <li>
-          <router-link to="/dashboard" @click="close" title="Dashboard">
-            <i class="fas fa-tachometer-alt"></i> <span class="sidebar-label">Dashboard</span>
-          </router-link>
-        </li>
+        <router-link to="/dashboard" @click="close" title="Dashboard" class="sidebar-link">
+          <i class="fas fa-tachometer-alt"></i> <span class="sidebar-label">Dashboard</span>
+        </router-link>
 
         <template v-if="user?.role === 'citoyen'">
-          <li class="sidebar-section"><span class="sidebar-label">Mon espace</span></li>
-          <li>
-            <router-link to="/reports/create" @click="close" title="Signaler">
-              <i class="fas fa-exclamation-triangle"></i> <span class="sidebar-label">Signaler</span>
-            </router-link>
-          </li>
-          <li>
-            <router-link to="/identity-card" @click="close" title="Ma Carte">
-              <i class="fas fa-id-card"></i> <span class="sidebar-label">Ma Carte</span>
-            </router-link>
-          </li>
-          <li>
-            <router-link to="/payments" @click="close" title="Mes Paiements">
-              <i class="fas fa-file-invoice-dollar"></i> <span class="sidebar-label">Mes Paiements</span>
-            </router-link>
-          </li>
+          <div class="sidebar-section"><span class="sidebar-label">Mon espace</span></div>
+          <router-link to="/reports/create" @click="close" title="Signaler" class="sidebar-link">
+            <i class="fas fa-exclamation-triangle"></i> <span class="sidebar-label">Signaler</span>
+          </router-link>
+          <router-link to="/identity-card" @click="close" title="Ma Carte" class="sidebar-link">
+            <i class="fas fa-id-card"></i> <span class="sidebar-label">Ma Carte</span>
+          </router-link>
+          <router-link to="/payments" @click="close" title="Mes Paiements" class="sidebar-link">
+            <i class="fas fa-file-invoice-dollar"></i> <span class="sidebar-label">Mes Paiements</span>
+          </router-link>
         </template>
 
         <template v-if="isAuthority">
-          <!-- <li class="sidebar-section"><span class="sidebar-label">Gestion</span></li> -->
-          <li v-if="canRegisterUsers">
-            <router-link to="/users" @click="close" title="Gérer les utilisateurs">
-              <i class="fas fa-users-cog"></i> <span class="sidebar-label">Utilisateurs</span>
-            </router-link>
-          </li>
-          <li>
-            <router-link to="/households" @click="close" title="Ménages">
-              <i class="fas fa-house-user"></i> <span class="sidebar-label">Ménages</span>
-            </router-link>
-          </li>
-          <li>
-            <router-link to="/announcements/create" @click="close" title="Publier communiqué">
-              <i class="fas fa-plus-circle"></i> <span class="sidebar-label">Publier communiqué</span>
-            </router-link>
-          </li>
+          <router-link v-if="canRegisterUsers" to="/users" @click="close" title="Gérer les utilisateurs" class="sidebar-link">
+            <i class="fas fa-users-cog"></i> <span class="sidebar-label">Utilisateurs</span>
+          </router-link>
+          <router-link to="/households" @click="close" title="Ménages" class="sidebar-link">
+            <i class="fas fa-house-user"></i> <span class="sidebar-label">Ménages</span>
+          </router-link>
+          <router-link to="/announcements/create" @click="close" title="Publier communiqué" class="sidebar-link">
+            <i class="fas fa-plus-circle"></i> <span class="sidebar-label">Publier communiqué</span>
+          </router-link>
         </template>
 
         <template v-if="isAuthority || user?.role === 'agent_recensement'">
-          <!-- <li class="sidebar-section"><span class="sidebar-label">Recensement</span></li> -->
-          <li v-if="isAuthority">
-            <router-link to="/censuses" @click="close" title="Campagnes">
-              <i class="fas fa-clipboard-list"></i> <span class="sidebar-label">Campagnes</span>
-            </router-link>
-          </li>
-          <li v-if="user?.role === 'agent_recensement'">
-            <router-link to="/census/collect" @click="close" title="Collecte terrain">
-              <i class="fas fa-clipboard-check"></i> <span class="sidebar-label">Mes campagnes</span>
-            </router-link>
-          </li>
+          <router-link v-if="isAuthority" to="/censuses" @click="close" title="Campagnes" class="sidebar-link">
+            <i class="fas fa-clipboard-list"></i> <span class="sidebar-label">Campagnes</span>
+          </router-link>
+          <router-link v-if="user?.role === 'agent_recensement'" to="/census/collect" @click="close" title="Collecte terrain" class="sidebar-link">
+            <i class="fas fa-clipboard-check"></i> <span class="sidebar-label">Mes campagnes</span>
+          </router-link>
         </template>
 
-        <li class="sidebar-section"><span class="sidebar-label">Compte</span></li>
-        <li class="sidebar-notif-item">
-          <router-link to="/notifications" @click="close" title="Notifications">
-            <i class="fas fa-bell"></i>
-            <span class="sidebar-label">Notifications</span>
-            <span v-if="unreadCount > 0" class="sidebar-notif-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/profile/edit" @click="close" title="Mon profil">
-            <i class="fas fa-user-edit"></i> <span class="sidebar-label">Mon profil</span>
-          </router-link>
-        </li>
+        <div class="sidebar-section"><span class="sidebar-label">Compte</span></div>
+        <router-link to="/notifications" @click="close" title="Notifications" class="sidebar-link sidebar-notif-item">
+          <i class="fas fa-bell"></i>
+          <span class="sidebar-label">Notifications</span>
+          <span v-if="unreadCount > 0" class="sidebar-notif-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+        </router-link>
+        <router-link to="/profile/edit" @click="close" title="Mon profil" class="sidebar-link">
+          <i class="fas fa-user-edit"></i> <span class="sidebar-label">Mon profil</span>
+        </router-link>
       </template>
-    </ul>
+    </nav>
 
     <div v-if="isAuthenticated" class="sidebar-user">
       <img

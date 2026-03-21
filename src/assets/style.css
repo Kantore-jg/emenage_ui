@@ -148,7 +148,7 @@ body {
 
 .sidebar.collapsed .sidebar-section {
     text-align: center;
-    padding: 0.5rem 0 0.25rem;
+    padding: 0.75rem 0 0.25rem;
 }
 .sidebar.collapsed .sidebar-section .sidebar-label {
     display: none;
@@ -170,10 +170,9 @@ body {
     padding: 1.25rem 0.5rem;
 }
 
-.sidebar.collapsed .sidebar-nav li a,
-.sidebar.collapsed .sidebar-nav li button {
+.sidebar.collapsed .sidebar-link {
     justify-content: center;
-    padding: 0.65rem 0;
+    padding: 0.85rem 0;
 }
 
 .sidebar.collapsed .sidebar-user {
@@ -219,31 +218,31 @@ body {
 }
 
 .sidebar-nav {
-    list-style: none;
-    padding: 0.75rem 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 0;
     margin: 0;
     flex: 1;
     overflow-y: auto;
 }
 
 .sidebar-section {
-    padding: 0.5rem 1.5rem 0.25rem;
-    font-size: 0.7rem;
+    padding: 0.75rem 1.5rem 0.35rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: rgba(255,255,255,0.4);
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
 }
 
-.sidebar-nav li a,
-.sidebar-nav li button {
+.sidebar-link {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.65rem 1.5rem;
-    color: rgba(255,255,255,0.8);
+    gap: 0.85rem;
+    padding: 0.75rem 1.5rem;
+    color: rgba(255,255,255,0.85);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 1.5rem;
     transition: all 0.2s ease;
     border: none;
     background: none;
@@ -251,27 +250,26 @@ body {
     text-align: left;
     cursor: pointer;
     white-space: nowrap;
+    border-left: 3px solid transparent;
 }
 
-.sidebar-nav li a:hover,
-.sidebar-nav li button:hover {
+.sidebar-link:hover {
     background: rgba(255,255,255,0.1);
     color: white;
 }
 
-.sidebar-nav li a.router-link-active,
-.sidebar-nav li a.active-link {
+.sidebar-link.router-link-active,
+.sidebar-link.active-link {
     background: rgba(206,17,38,0.15);
     color: white;
-    border-right: 3px solid var(--accent-color);
+    border-left: 3px solid var(--accent-color);
     font-weight: 600;
 }
 
-.sidebar-nav li a i,
-.sidebar-nav li button i {
-    width: 20px;
+.sidebar-link i {
+    width: 22px;
     text-align: center;
-    font-size: 1rem;
+    font-size: 1.1rem;
     flex-shrink: 0;
 }
 
@@ -518,9 +516,6 @@ body {
 .sidebar-notif-item {
     position: relative;
 }
-.sidebar-notif-item a {
-    position: relative;
-}
 .sidebar-notif-badge {
     background: #dc3545;
     color: white;
@@ -558,8 +553,7 @@ body {
         width: var(--sidebar-width) !important;
     }
     .sidebar.collapsed .sidebar-label { opacity: 1; width: auto; }
-    .sidebar.collapsed .sidebar-nav li a,
-    .sidebar.collapsed .sidebar-nav li button { justify-content: flex-start; padding: 0.65rem 1.5rem; }
+    .sidebar.collapsed .sidebar-link { justify-content: flex-start; padding: 0.75rem 1.5rem; }
     .sidebar.collapsed .sidebar-brand { justify-content: flex-start; padding: 1.25rem 1.5rem; }
     .sidebar.collapsed .sidebar-user { justify-content: flex-start; padding: 1rem 1.5rem; }
     .sidebar.collapsed .sidebar-user-info { display: block; }
