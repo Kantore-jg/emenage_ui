@@ -10,7 +10,7 @@ async function fetchNotifications() {
   loading.value = true
   try {
     const { data } = await api.get('/dashboard/notifications')
-    notifications.value = data
+    notifications.value = data.notifications || []
   } catch {
     // silently fail
   } finally {

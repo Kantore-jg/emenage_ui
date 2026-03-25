@@ -242,7 +242,7 @@ body {
     padding: 0.75rem 1.5rem;
     color: rgba(255,255,255,0.85);
     text-decoration: none;
-    font-size: 1.5rem;
+    font-size: 0.98rem;
     transition: all 0.2s ease;
     border: none;
     background: none;
@@ -323,6 +323,23 @@ body {
     font-size: 0.85rem;
 }
 
+.sidebar-user-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 6px;
+    padding: 0.25rem 0.4rem;
+    transition: background 0.2s;
+}
+.sidebar-user-link:hover {
+    background: rgba(255,255,255,0.1);
+    color: inherit;
+}
+
 .sidebar-logout-btn {
     background: none;
     border: none;
@@ -391,6 +408,26 @@ body {
     transition: all 0.2s;
 }
 .sidebar-desktop-toggle:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.topbar-notif-btn {
+    background: none;
+    border: 1px solid var(--topbar-border);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--muted-text);
+    font-size: 1rem;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+.topbar-notif-btn:hover {
     color: var(--primary-color);
     border-color: var(--primary-color);
 }

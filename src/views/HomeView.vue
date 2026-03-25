@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- Summary cards -->
     <div class="row g-3 mb-3">
       <div class="col-6 col-lg-3" v-for="card in summaryCards" :key="card.label">
         <div class="card h-100 border-0 shadow-sm">
@@ -18,18 +17,17 @@
       </div>
     </div>
 
-    <!-- Charts row 1 -->
     <div class="row g-3 mb-3">
       <div class="col-lg-8">
         <div class="card">
           <div class="card-header py-2 d-flex justify-content-between align-items-center">
-            <small><i class="fas fa-chart-line"></i> Utilisateurs inscrits par mois</small>
+            <small><i class="fas fa-chart-line"></i> {{ $t('home.usersByMonth') }}</small>
           </div>
           <div class="card-body p-2">
             <div class="chart-container" style="height: 220px;">
               <Bar v-if="userChartData" :data="userChartData" :options="barOptions" />
               <div v-else class="d-flex align-items-center justify-content-center h-100 text-muted">
-                <span class="spinner-border spinner-border-sm me-2"></span> Chargement...
+                <span class="spinner-border spinner-border-sm me-2"></span> {{ $t('common.loading') }}
               </div>
             </div>
           </div>
@@ -38,7 +36,7 @@
       <div class="col-lg-4">
         <div class="card">
           <div class="card-header py-2">
-            <small><i class="fas fa-chart-pie"></i> Paiements par type</small>
+            <small><i class="fas fa-chart-pie"></i> {{ $t('home.paymentsByType') }}</small>
           </div>
           <div class="card-body p-2 d-flex align-items-center justify-content-center">
             <div style="width: 200px; height: 220px;">
@@ -52,21 +50,20 @@
       </div>
     </div>
 
-    <!-- Charts row 2 -->
     <div class="row g-3 mb-3">
       <div class="col-12">
         <div class="card">
           <div class="card-header py-2 d-flex justify-content-between align-items-center">
-            <small><i class="fas fa-house-user"></i> Membres par ménage (top 15)</small>
+            <small><i class="fas fa-house-user"></i> {{ $t('home.membersByHousehold') }}</small>
             <router-link to="/announcements" class="btn btn-sm btn-light py-0 px-2" style="font-size: 0.8rem;">
-              <i class="fas fa-bullhorn"></i> Communiqués
+              <i class="fas fa-bullhorn"></i> {{ $t('nav.announcements') }}
             </router-link>
           </div>
           <div class="card-body p-2">
             <div class="chart-container" style="height: 200px;">
               <Bar v-if="householdChartData" :data="householdChartData" :options="horizontalBarOptions" />
               <div v-else class="d-flex align-items-center justify-content-center h-100 text-muted">
-                <span class="spinner-border spinner-border-sm me-2"></span> Chargement...
+                <span class="spinner-border spinner-border-sm me-2"></span> {{ $t('common.loading') }}
               </div>
             </div>
           </div>
@@ -90,19 +87,21 @@ import {
   Legend,
 } from 'chart.js'
 import api from '../services/api'
+import { useI18n } from 'vue-i18n'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend)
 
+const { t } = useI18n()
 const stats = ref(null)
 
 const summaryCards = computed(() => {
   if (!stats.value?.summary) return []
   const s = stats.value.summary
   return [
-    { label: 'Utilisateurs', value: s.total_users, icon: 'fas fa-users', bg: 'linear-gradient(135deg, #2c5f2d, #97bc62)' },
-    { label: 'Citoyens', value: s.total_citoyens, icon: 'fas fa-user', bg: 'linear-gradient(135deg, #0d6efd, #6ea8fe)' },
-    { label: 'Ménages', value: s.total_households, icon: 'fas fa-house-user', bg: 'linear-gradient(135deg, #f4a261, #e76f51)' },
-    { label: 'Paiements', value: s.total_payments, icon: 'fas fa-file-invoice-dollar', bg: 'linear-gradient(135deg, #6f42c1, #b197fc)' },
+    { label: t('home.users'), value: s.total_users, icon: 'fas fa-users', bg: 'linear-gradient(135deg, #2c5f2d, #97bc62)' },
+    { label: t('home.citizens'), value: s.total_citoyens, icon: 'fas fa-user', bg: 'linear-gradient(135deg, #0d6efd, #6ea8fe)' },
+    { label: t('home.households'), value: s.total_households, icon: 'fas fa-house-user', bg: 'linear-gradient(135deg, #f4a261, #e76f51)' },
+    { label: t('home.payments'), value: s.total_payments, icon: 'fas fa-file-invoice-dollar', bg: 'linear-gradient(135deg, #6f42c1, #b197fc)' },
   ]
 })
 
@@ -112,7 +111,7 @@ const userChartData = computed(() => {
   return {
     labels: d.labels,
     datasets: [{
-      label: 'Nouveaux utilisateurs',
+      label: t('home.newUsers'),
       data: d.data,
       backgroundColor: 'rgba(44, 95, 45, 0.7)',
       borderColor: '#2c5f2d',
@@ -127,7 +126,7 @@ const paymentChartData = computed(() => {
   const d = stats.value.payments_by_type
   if (!d.labels.length) {
     return {
-      labels: ['Aucun paiement'],
+      labels: [t('home.noPayment')],
       datasets: [{ data: [1], backgroundColor: ['#dee2e6'] }],
     }
   }
@@ -148,14 +147,14 @@ const householdChartData = computed(() => {
   const d = stats.value.members_by_household
   if (!d.labels.length) {
     return {
-      labels: ['Aucun ménage'],
+      labels: [t('households.noHousehold')],
       datasets: [{ data: [0], backgroundColor: ['#dee2e6'] }],
     }
   }
   return {
     labels: d.labels,
     datasets: [{
-      label: 'Membres',
+      label: t('home.members'),
       data: d.data,
       backgroundColor: 'rgba(151, 188, 98, 0.7)',
       borderColor: '#97bc62',

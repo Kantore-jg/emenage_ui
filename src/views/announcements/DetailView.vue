@@ -12,10 +12,10 @@
           <div class="announcement-content" v-html="announcement.contenu.replace(/\n/g, '<br>')"></div>
         </div>
         <div class="card-footer d-flex justify-content-between">
-          <router-link to="/announcements" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Retour</router-link>
+          <router-link to="/announcements" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> {{ $t('common.back') }}</router-link>
           <div v-if="canEdit">
-            <router-link :to="`/announcements/${announcement.id}/edit`" class="btn btn-warning me-2"><i class="fas fa-edit"></i> Modifier</router-link>
-            <button class="btn btn-danger" @click="deleteAnnouncement"><i class="fas fa-trash"></i> Supprimer</button>
+            <router-link :to="`/announcements/${announcement.id}/edit`" class="btn btn-warning me-2"><i class="fas fa-edit"></i> {{ $t('common.edit') }}</router-link>
+            <button class="btn btn-danger" @click="deleteAnnouncement"><i class="fas fa-trash"></i> {{ $t('common.delete') }}</button>
           </div>
         </div>
       </div>
@@ -27,11 +27,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '../../stores/auth'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 
 const route = useRoute()
 const router = useRouter()
 const { user, isAuthenticated } = useAuth()
+const { t } = useI18n()
 const announcement = ref(null)
 
 const canEdit = computed(() => isAuthenticated.value && announcement.value && (user.value?.id === announcement.value.author_id || user.value?.role === 'admin'))
@@ -39,11 +41,11 @@ const canEdit = computed(() => isAuthenticated.value && announcement.value && (u
 function formatDate(d) { return new Date(d).toLocaleDateString('fr-FR') }
 
 async function deleteAnnouncement() {
-  if (!confirm('Supprimer ce communiqué ?')) return
+  if (!confirm(t('announcements.deleteConfirm'))) return
   try {
     await api.delete(`/announcements/${route.params.id}`)
     router.push('/announcements')
-  } catch (e) { alert(e.response?.data?.message || 'Erreur') }
+  } catch (e) { alert(e.response?.data?.message || t('errors.generic')) }
 }
 
 onMounted(async () => {

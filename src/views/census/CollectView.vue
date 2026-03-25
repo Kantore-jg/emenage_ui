@@ -6,11 +6,11 @@
   <template v-else>
     <!-- Liste des campagnes assignées -->
     <div v-if="!activeCensus">
-      <h2 class="mb-4"><i class="fas fa-clipboard-check"></i> Mes Campagnes</h2>
+      <h2 class="mb-4"><i class="fas fa-clipboard-check"></i> {{ $t('census.myCampaigns') }}</h2>
 
       <div v-if="!campaigns.length" class="text-center py-5 text-muted">
         <i class="fas fa-clipboard fa-3x mb-3"></i>
-        <p>Aucune campagne assignée</p>
+        <p>{{ $t('census.noCampaignAssigned') }}</p>
       </div>
 
       <div class="row g-3">
@@ -22,14 +22,14 @@
               <div class="small text-muted mb-3">
                 <div><i class="fas fa-map-marker-alt"></i> Zone : {{ c.assigned_zone?.name || '-' }}</div>
                 <div><i class="fas fa-calendar"></i> {{ c.date_debut ? formatDate(c.date_debut) : '-' }} → {{ c.date_fin ? formatDate(c.date_fin) : '-' }}</div>
-                <div><i class="fas fa-file-alt"></i> {{ c.my_responses_count || 0 }} réponses collectées par moi</div>
+                <div><i class="fas fa-file-alt"></i> {{ c.my_responses_count || 0 }} {{ $t('census.responses') }}</div>
               </div>
               <div class="d-flex gap-2">
                 <button class="btn btn-primary btn-sm" @click="startCollect(c)">
-                  <i class="fas fa-plus"></i> Collecter
+                  <i class="fas fa-plus"></i> {{ $t('census.collectFor') }}
                 </button>
                 <button class="btn btn-outline-secondary btn-sm" @click="viewMyResponses(c)">
-                  <i class="fas fa-list"></i> Mes réponses
+                  <i class="fas fa-list"></i> {{ $t('census.myResponses') }}
                 </button>
               </div>
             </div>
@@ -43,13 +43,13 @@
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>{{ activeCensus.titre }}</h2>
         <button class="btn btn-outline-secondary btn-sm" @click="activeCensus = null">
-          <i class="fas fa-arrow-left"></i> Retour
+          <i class="fas fa-arrow-left"></i> {{ $t('common.back') }}
         </button>
       </div>
 
       <div v-if="submitSuccess" class="alert alert-success">
-        <i class="fas fa-check-circle"></i> Réponse enregistrée avec succès !
-        <button class="btn btn-primary btn-sm ms-2" @click="submitSuccess = false">Nouvelle collecte</button>
+        <i class="fas fa-check-circle"></i> {{ $t('census.responseSuccess') }}
+        <button class="btn btn-primary btn-sm ms-2" @click="submitSuccess = false">{{ $t('census.collectFor') }}</button>
       </div>
 
       <div v-if="submitError" class="alert alert-danger">{{ submitError }}</div>
@@ -59,7 +59,7 @@
           <div class="card">
             <div class="card-header bg-primary text-white">
               <div class="d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-clipboard"></i> Fiche de collecte</span>
+                <span><i class="fas fa-clipboard"></i> {{ $t('census.collectTitle') }}</span>
                 <span v-if="assignedZone" class="badge bg-light text-dark">
                   {{ assignedZone.name }}
                 </span>
@@ -67,8 +67,8 @@
             </div>
             <div class="card-body">
               <div class="mb-3">
-                <label class="form-label fw-bold">Nom du répondant *</label>
-                <input type="text" class="form-control" v-model="response.respondent_name" required placeholder="Ex: NKURUNZIZA Jean">
+                <label class="form-label fw-bold">{{ $t('census.respondentName') }}</label>
+                <input type="text" class="form-control" v-model="response.respondent_name" required :placeholder="$t('census.respondentNamePlaceholder')">
               </div>
 
               <hr>
@@ -87,16 +87,16 @@
                 <div v-else-if="field.type === 'boolean'" class="d-flex gap-3">
                   <div class="form-check">
                     <input class="form-check-input" type="radio" :name="'f'+field.id" :id="'f'+field.id+'y'" value="1" v-model="response.values[field.id]">
-                    <label class="form-check-label" :for="'f'+field.id+'y'">Oui</label>
+                    <label class="form-check-label" :for="'f'+field.id+'y'">{{ $t('common.yes') }}</label>
                   </div>
                   <div class="form-check">
                     <input class="form-check-input" type="radio" :name="'f'+field.id" :id="'f'+field.id+'n'" value="0" v-model="response.values[field.id]">
-                    <label class="form-check-label" :for="'f'+field.id+'n'">Non</label>
+                    <label class="form-check-label" :for="'f'+field.id+'n'">{{ $t('common.no') }}</label>
                   </div>
                 </div>
 
                 <select v-else-if="field.type === 'select'" class="form-select" v-model="response.values[field.id]" :required="field.required">
-                  <option value="">-- Choisir --</option>
+                  <option value="">{{ $t('users.selectOption') }}</option>
                   <option v-for="opt in field.options" :key="opt" :value="opt">{{ opt }}</option>
                 </select>
 
@@ -112,7 +112,7 @@
               <button type="submit" class="btn btn-primary" :disabled="submitting">
                 <span v-if="submitting" class="spinner-border spinner-border-sm me-1"></span>
                 <i v-else class="fas fa-paper-plane me-1"></i>
-                Enregistrer la réponse
+                {{ $t('census.submitResponse') }}
               </button>
             </div>
           </div>
@@ -123,9 +123,9 @@
     <!-- Mes réponses -->
     <template v-if="viewingResponses">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Mes réponses - {{ activeCensus.titre }}</h2>
+        <h2>{{ $t('census.responsesTitle') }} - {{ activeCensus.titre }}</h2>
         <button class="btn btn-outline-secondary btn-sm" @click="viewingResponses = false; activeCensus = null">
-          <i class="fas fa-arrow-left"></i> Retour
+          <i class="fas fa-arrow-left"></i> {{ $t('common.back') }}
         </button>
       </div>
       <div class="card">
@@ -134,12 +134,12 @@
             <table class="table table-sm mb-0">
               <thead class="bg-light">
                 <tr>
-                  <th>Date</th><th>Répondant</th>
+                  <th>{{ $t('common.date') }}</th><th>Répondant</th>
                   <th v-for="f in formFields" :key="f.id">{{ f.label }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="!myResponses.length"><td :colspan="2 + formFields.length" class="text-center text-muted py-3">Aucune réponse</td></tr>
+                <tr v-if="!myResponses.length"><td :colspan="2 + formFields.length" class="text-center text-muted py-3">{{ $t('census.noResponse') }}</td></tr>
                 <tr v-for="r in myResponses" :key="r.id">
                   <td><small>{{ formatDate(r.created_at) }}</small></td>
                   <td>{{ r.respondent_name }}</td>
@@ -158,7 +158,10 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
+
+const { t } = useI18n()
 
 const loading = ref(true)
 const campaigns = ref([])
@@ -215,7 +218,7 @@ async function submitResponse() {
     submitSuccess.value = true
     resetResponse()
   } catch (e) {
-    submitError.value = e.response?.data?.message || 'Erreur'
+    submitError.value = e.response?.data?.message || t('errors.generic')
   } finally { submitting.value = false }
 }
 

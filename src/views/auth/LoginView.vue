@@ -7,12 +7,12 @@
              style="width: 70px; height: 70px; background: linear-gradient(135deg, #2c5f2d, #97bc62);">
           <i class="fas fa-shield-alt fa-2x text-white"></i>
         </div>
-        <h3 class="fw-bold text-white">Ubuzima Hub</h3>
+        <h3 class="fw-bold text-white">{{ $t('nav.brand') }}</h3>
       </div>
 
       <div class="card shadow-lg border-0" style="backdrop-filter: blur(10px); background: rgba(255,255,255,0.92); border-radius: 16px;">
         <div class="card-body p-4">
-          <h5 class="text-center mb-4"><i class="fas fa-sign-in-alt"></i> Connexion</h5>
+          <h5 class="text-center mb-4"><i class="fas fa-sign-in-alt"></i> {{ $t('auth.login') }}</h5>
 
           <div v-if="error" class="alert alert-danger py-2">
             <i class="fas fa-exclamation-circle"></i> {{ error }}
@@ -21,14 +21,14 @@
           <form @submit.prevent="handleLogin">
             <div class="mb-3">
               <label for="identifiant" class="form-label">
-                <i class="fas fa-user"></i> Email ou téléphone
+                <i class="fas fa-user"></i> {{ $t('auth.emailOrPhone') }}
               </label>
               <input
                 type="text"
                 class="form-control"
                 id="identifiant"
                 v-model="identifiant"
-                placeholder="email ou phone"
+                :placeholder="$t('auth.emailOrPhonePlaceholder')"
                 required
                 autofocus
               >
@@ -36,7 +36,7 @@
 
             <div class="mb-4">
               <label for="password" class="form-label">
-                <i class="fas fa-lock"></i> Mot de passe
+                <i class="fas fa-lock"></i> {{ $t('auth.password') }}
               </label>
               <div class="input-group">
                 <input
@@ -56,7 +56,7 @@
                     style="background: linear-gradient(135deg, #2c5f2d, #97bc62); border: none;">
               <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
               <i v-else class="fas fa-sign-in-alt me-1"></i>
-              Se connecter
+              {{ $t('auth.loginButton') }}
             </button>
           </form>
         </div>
@@ -69,9 +69,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../../stores/auth'
+import { useI18n } from 'vue-i18n'
 
 const { login } = useAuth()
 const router = useRouter()
+const { t } = useI18n()
 
 const identifiant = ref('')
 const password = ref('')
@@ -86,7 +88,7 @@ async function handleLogin() {
     await login(identifiant.value, password.value)
     router.push('/dashboard')
   } catch (e) {
-    error.value = e.response?.data?.message || 'Identifiant ou mot de passe incorrect'
+    error.value = e.response?.data?.message || t('auth.invalidCredentials')
   } finally {
     loading.value = false
   }

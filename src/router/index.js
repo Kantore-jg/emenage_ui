@@ -19,6 +19,8 @@ const routes = [
   { path: '/households', name: 'households', component: () => import('../views/households/ListView.vue'), meta: { auth: true } },
   { path: '/households/:id', name: 'household-detail', component: () => import('../views/households/DetailView.vue'), meta: { auth: true } },
   { path: '/reports/create', name: 'report-create', component: () => import('../views/reports/CreateView.vue'), meta: { auth: true } },
+  { path: '/reports/mine', name: 'my-reports', component: () => import('../views/reports/MyReportsView.vue'), meta: { auth: true } },
+  { path: '/calendar', name: 'calendar', component: () => import('../views/calendar/CalendarView.vue'), meta: { auth: true } },
   { path: '/identity-card', name: 'identity-card', component: () => import('../views/identity-card/ViewCard.vue'), meta: { auth: true } },
   { path: '/payments', name: 'payments', component: () => import('../views/payments/IndexView.vue'), meta: { auth: true } },
   { path: '/payments/create', name: 'payment-create', component: () => import('../views/payments/CreateView.vue'), meta: { auth: true } },
@@ -30,6 +32,7 @@ const routes = [
   { path: '/censuses/create', name: 'census-create', component: () => import('../views/census/CreateView.vue'), meta: { auth: true } },
   { path: '/censuses/:id', name: 'census-detail', component: () => import('../views/census/DetailView.vue'), meta: { auth: true } },
   { path: '/census/collect', name: 'census-collect', component: () => import('../views/census/CollectView.vue'), meta: { auth: true } },
+  { path: '/search', name: 'search', component: () => import('../views/SearchResultsView.vue'), meta: { auth: true } },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/ErrorView.vue') },
 ]
 
