@@ -47,28 +47,63 @@
 
         <div v-if="tab === 'members'">
           <div class="card">
-            <div class="card-header"><i class="fas fa-users"></i> {{ $t('households.permanentMembers') }}</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span><i class="fas fa-users"></i> {{ $t('households.permanentMembers') }}</span>
+              <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                <i class="fas fa-plus"></i> {{ $t('common.add') }}
+              </button>
+            </div>
             <div class="card-body">
               <table class="table table-hover">
-                <thead><tr><th>{{ $t('common.name') }}</th><th>{{ $t('dashboard.age') }}</th><th>{{ $t('common.phone') }}</th><th>{{ $t('dashboard.validation') }}</th></tr></thead>
+                <thead><tr><th>{{ $t('common.name') }}</th><th>{{ $t('dashboard.age') }}</th><th>{{ $t('common.phone') }}</th><th>{{ $t('dashboard.cni') }}</th><th>{{ $t('dashboard.validation') }}</th><th>{{ $t('common.actions') }}</th></tr></thead>
                 <tbody>
+                  <tr v-if="members.length === 0">
+                    <td colspan="6" class="text-center text-muted">{{ $t('dashboard.noPermanent') }}</td>
+                  </tr>
                   <tr v-for="m in members" :key="m.id">
                     <td>{{ m.nom }}</td><td>{{ m.age }} {{ $t('dashboard.years') }}</td><td>{{ m.telephone || '-' }}</td>
+                    <td>
+                      <a v-if="m.photo_cni" :href="apiBase + m.photo_cni" target="_blank" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-id-card"></i>
+                      </a>
+                      <span v-else class="text-muted">-</span>
+                    </td>
                     <td><span class="badge" :class="{'bg-warning text-dark': m.statut_validation==='en_attente', 'bg-success': m.statut_validation==='valide', 'bg-danger': m.statut_validation==='rejete'}">{{ m.statut_validation }}</span></td>
+                    <td>
+                      <button class="btn btn-sm btn-danger" @click="deleteMember(m.id)">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
           <div class="card mt-3">
-            <div class="card-header"><i class="fas fa-user-friends"></i> {{ $t('households.guests') }}</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span><i class="fas fa-user-friends"></i> {{ $t('households.guests') }}</span>
+              <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addInviteModal">
+                <i class="fas fa-plus"></i> {{ $t('dashboard.addGuest') }}
+              </button>
+            </div>
             <div class="card-body">
               <table class="table table-hover">
-                <thead><tr><th>{{ $t('common.name') }}</th><th>{{ $t('dashboard.age') }}</th><th>{{ $t('common.status') }}</th></tr></thead>
+                <thead><tr><th>{{ $t('common.name') }}</th><th>{{ $t('dashboard.age') }}</th><th>{{ $t('common.phone') }}</th><th>{{ $t('common.status') }}</th><th>{{ $t('common.actions') }}</th></tr></thead>
                 <tbody>
+                  <tr v-if="invitesData.length === 0">
+                    <td colspan="5" class="text-center text-muted">{{ $t('dashboard.noGuest') }}</td>
+                  </tr>
                   <tr v-for="inv in invitesData" :key="inv.id">
-                    <td>{{ inv.nom }}</td><td>{{ inv.age }} {{ $t('dashboard.years') }}</td>
+                    <td>{{ inv.nom }}</td><td>{{ inv.age }} {{ $t('dashboard.years') }}</td><td>{{ inv.telephone || '-' }}</td>
                     <td><span class="badge" :class="inv.statut==='present' ? 'bg-success' : 'bg-secondary'">{{ inv.statut }}</span></td>
+                    <td>
+                      <button v-if="inv.statut === 'present'" class="btn btn-sm btn-warning" @click="markDeparted(inv.id)">
+                        <i class="fas fa-sign-out-alt"></i> {{ $t('dashboard.departed') }}
+                      </button>
+                      <button class="btn btn-sm btn-danger ms-1" @click="deleteMember(inv.id)">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -98,13 +133,82 @@
       </div>
     </div>
   </template>
+
+  <div class="modal fade" id="addMemberModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-user-plus"></i> {{ $t('dashboard.addMember') }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form @submit.prevent="addMember">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">{{ $t('dashboard.fullName') }} *</label>
+              <input v-model="memberForm.nom" type="text" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{{ $t('dashboard.age') }} *</label>
+              <input v-model="memberForm.age" type="number" class="form-control" min="0" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{{ $t('common.phone') }}</label>
+              <input v-model="memberForm.telephone" type="tel" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{{ $t('dashboard.cniPhoto') }}</label>
+              <input type="file" class="form-control" accept="image/*" @change="memberForm.photo_cni = $event.target.files[0]">
+              <small class="text-muted">{{ $t('dashboard.cniRequired') }}</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ $t('common.cancel') }}</button>
+            <button type="submit" class="btn btn-primary">{{ $t('common.add') }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addInviteModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-user-friends"></i> {{ $t('dashboard.addGuest') }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form @submit.prevent="addInvite">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">{{ $t('dashboard.fullName') }} *</label>
+              <input v-model="inviteForm.nom" type="text" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{{ $t('dashboard.age') }} *</label>
+              <input v-model="inviteForm.age" type="number" class="form-control" min="0" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{{ $t('common.phone') }}</label>
+              <input v-model="inviteForm.telephone" type="tel" class="form-control">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ $t('common.cancel') }}</button>
+            <button type="submit" class="btn btn-primary">{{ $t('common.add') }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 
+const { t } = useI18n()
 const route = useRoute()
 const apiBase = 'http://localhost:8000'
 const household = ref(null)
@@ -113,10 +217,12 @@ const invitesData = ref([])
 const payments = ref([])
 const stats = ref({})
 const tab = ref('members')
+const memberForm = reactive({ nom: '', age: '', telephone: '', photo_cni: null })
+const inviteForm = reactive({ nom: '', age: '', telephone: '' })
 
 function formatDate(d) { return new Date(d).toLocaleDateString('fr-FR') }
 
-onMounted(async () => {
+async function loadData() {
   try {
     const { data } = await api.get(`/households/${route.params.id}`)
     household.value = data.household
@@ -125,5 +231,66 @@ onMounted(async () => {
     payments.value = data.payments
     stats.value = data.stats
   } catch (e) { console.error(e) }
-})
+}
+
+async function addMember() {
+  const fd = new FormData()
+  fd.append('household_id', route.params.id)
+  fd.append('nom', memberForm.nom)
+  fd.append('age', memberForm.age)
+  if (memberForm.telephone) fd.append('telephone', memberForm.telephone)
+  if (memberForm.photo_cni) fd.append('photo_cni', memberForm.photo_cni)
+
+  try {
+    await api.post('/household/members', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    memberForm.nom = ''
+    memberForm.age = ''
+    memberForm.telephone = ''
+    memberForm.photo_cni = null
+    document.querySelector('#addMemberModal .btn-close')?.click()
+    await loadData()
+  } catch (e) {
+    alert(e.response?.data?.message || t('errors.generic'))
+  }
+}
+
+async function addInvite() {
+  try {
+    await api.post('/household/invites', {
+      household_id: route.params.id,
+      nom: inviteForm.nom,
+      age: inviteForm.age,
+      telephone: inviteForm.telephone || null,
+    })
+    inviteForm.nom = ''
+    inviteForm.age = ''
+    inviteForm.telephone = ''
+    document.querySelector('#addInviteModal .btn-close')?.click()
+    await loadData()
+  } catch (e) {
+    alert(e.response?.data?.message || t('errors.generic'))
+  }
+}
+
+async function markDeparted(id) {
+  try {
+    await api.put(`/household/invites/${id}`, { statut: 'parti' })
+    await loadData()
+  } catch (e) {
+    alert(e.response?.data?.message || t('errors.generic'))
+  }
+}
+
+async function deleteMember(id) {
+  if (!window.confirm(t('dashboard.deleteMemberConfirm'))) return
+
+  try {
+    await api.delete(`/household/members/${id}`)
+    await loadData()
+  } catch (e) {
+    alert(e.response?.data?.message || t('errors.generic'))
+  }
+}
+
+onMounted(loadData)
 </script>
