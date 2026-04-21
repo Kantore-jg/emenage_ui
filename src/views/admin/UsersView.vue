@@ -98,7 +98,7 @@
               <i class="fas fa-check-circle"></i> {{ $t('users.created') }}<br>
               <strong>{{ $t('users.passwordLabel') }} :</strong> <code class="fs-5">{{ createdPassword }}</code>
               <br><span v-if="createdZone" class="text-muted">{{ $t('common.zone') }} : {{ createdZone }}</span>
-              <br><small class="text-muted">{{ $t('users.notePassword') }}</small>
+              <br><small class="text-muted">{{ createdEmailInfo }}</small>
             </div>
 
             <div class="row">
@@ -286,7 +286,7 @@
         <div class="modal-body text-center">
           <p>{{ $t('users.passwordLabel') }} - <strong>{{ resetUserName }}</strong> :</p>
           <code class="fs-4 d-block p-2 bg-light rounded">{{ resetPwdValue }}</code>
-          <small class="text-muted mt-2 d-block">{{ $t('users.notePasswordShort') }}</small>
+          <small class="text-muted mt-2 d-block">{{ resetEmailInfo }}</small>
         </div>
       </div>
     </div>
@@ -319,8 +319,10 @@ const formError = ref('')
 const formLoading = ref(false)
 const createdPassword = ref('')
 const createdZone = ref('')
+const createdEmailInfo = ref('')
 const resetUserName = ref('')
 const resetPwdValue = ref('')
+const resetEmailInfo = ref('')
 
 const editForm = reactive({ id: null, nom: '', telephone: '', email: '', role: '' })
 const editGeo = reactive({ province: '', commune: '', zone: '', colline: '' })
@@ -452,11 +454,11 @@ function resetCreateForm() {
   form.nom = ''; form.telephone = ''; form.email = ''; form.role = ''; form.photo = null; form.adresse = ''
   geo.province = ''; geo.commune = ''; geo.zone = ''; geo.colline = ''
   communes.value = []; zones.value = []; collines.value = []
-  formError.value = ''; createdPassword.value = ''; createdZone.value = ''
+  formError.value = ''; createdPassword.value = ''; createdZone.value = ''; createdEmailInfo.value = ''
 }
 
 async function createUser() {
-  formError.value = ''; formLoading.value = true; createdPassword.value = ''
+  formError.value = ''; formLoading.value = true; createdPassword.value = ''; createdEmailInfo.value = ''
   const fd = new FormData()
   fd.append('nom', form.nom)
   fd.append('telephone', form.telephone)
@@ -469,6 +471,11 @@ async function createUser() {
     const { data } = await api.post('/users', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     createdPassword.value = data.password
     createdZone.value = data.zone || ''
+    createdEmailInfo.value = data.email_sent
+      ? t('users.welcomeEmailSent')
+      : data.has_email
+        ? t('users.welcomeEmailFailed')
+        : t('users.noEmailFallback')
     await loadUsers(currentPage.value)
   } catch (e) {
     formError.value = e.response?.data?.message || t('errors.generic')
@@ -577,6 +584,11 @@ async function resetPwd(id, name) {
     const { data } = await api.post(`/users/${id}/reset-password`)
     resetUserName.value = name
     resetPwdValue.value = data.password
+    resetEmailInfo.value = data.email_sent
+      ? t('users.resetEmailSent')
+      : data.has_email
+        ? t('users.resetEmailFailed')
+        : t('users.noEmailFallbackShort')
     const modal = new Modal(document.getElementById('pwdModal'))
     modal.show()
   } catch (e) { alert(e.response?.data?.message || t('errors.generic')) }

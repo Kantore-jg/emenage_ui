@@ -22,6 +22,13 @@
               <label for="contenu" class="form-label">{{ $t('announcements.contentLabel') }} *</label>
               <textarea class="form-control" v-model="form.contenu" rows="10" required></textarea>
             </div>
+            <div class="form-check mb-3">
+              <input id="sendEmailToAll" v-model="form.send_email_to_all" class="form-check-input" type="checkbox">
+              <label class="form-check-label" for="sendEmailToAll">
+                {{ $t('announcements.sendEmailToAll') }}
+              </label>
+              <div class="form-text">{{ $t('announcements.sendEmailToAllHelp') }}</div>
+            </div>
             <div class="d-flex justify-content-between">
               <router-link to="/announcements" class="btn btn-secondary"><i class="fas fa-times"></i> {{ $t('common.cancel') }}</router-link>
               <button type="submit" class="btn btn-primary" :disabled="loading"><i class="fas fa-paper-plane"></i> {{ $t('announcements.publishButton') }}</button>
@@ -41,7 +48,7 @@ import api from '../../services/api'
 
 const router = useRouter()
 const { t } = useI18n()
-const form = reactive({ titre: '', contenu: '', autorite: '', date: new Date().toISOString().split('T')[0] })
+const form = reactive({ titre: '', contenu: '', autorite: '', date: new Date().toISOString().split('T')[0], send_email_to_all: false })
 const error = ref('')
 const loading = ref(false)
 
