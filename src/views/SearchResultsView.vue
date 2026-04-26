@@ -68,6 +68,21 @@
         </div>
       </div>
 
+      <div v-if="results.apartments?.length" class="card mb-3">
+        <div class="card-header"><i class="fas fa-building"></i> {{ $t('apartments.title') }} ({{ results.apartments.length }})</div>
+        <div class="list-group list-group-flush">
+          <router-link v-for="apt in results.apartments" :key="'apt-'+apt.id" :to="`/apartments/${apt.id}`" class="list-group-item list-group-item-action">
+            <div class="d-flex justify-content-between">
+              <div>
+                <strong>{{ apt.avenue }}, N°{{ apt.numero }}</strong>
+                <br><small class="text-muted"><i class="fas fa-user"></i> {{ $t('apartments.owner') }}: {{ apt.owner_nom }} — <i class="fas fa-map-marker-alt"></i> {{ apt.zone_name }}</small>
+              </div>
+              <i class="fas fa-chevron-right text-muted align-self-center"></i>
+            </div>
+          </router-link>
+        </div>
+      </div>
+
       <div v-if="results.announcements?.length" class="card mb-3">
         <div class="card-header"><i class="fas fa-bullhorn"></i> {{ $t('search.announcementsSection') }} ({{ results.announcements.length }})</div>
         <div class="list-group list-group-flush">

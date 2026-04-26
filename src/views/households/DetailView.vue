@@ -21,6 +21,11 @@
             <hr>
             <p><strong><i class="fas fa-map-marker-alt"></i> {{ $t('households.quarter') }}:</strong><br><span class="badge bg-info">{{ household.quartier }}</span></p>
             <p><strong><i class="fas fa-home"></i> {{ $t('households.address') }}:</strong><br>{{ household.adresse }}</p>
+            <div v-if="household.apartment" class="mb-3 p-2 bg-light rounded">
+              <small class="text-muted d-block mb-1"><i class="fas fa-building"></i> {{ $t('apartments.apartment') }}</small>
+              <p class="mb-1"><strong>{{ household.apartment.avenue }}, N°{{ household.apartment.numero }}</strong></p>
+              <small class="text-muted">{{ $t('apartments.owner') }}: {{ household.apartment.owner?.nom }}</small>
+            </div>
             <p><strong><i class="fas fa-phone"></i> {{ $t('common.phone') }}:</strong><br>{{ household.chef?.telephone }}</p>
             <p><strong><i class="fas fa-calendar"></i> {{ $t('common.date') }}:</strong><br>{{ formatDate(household.created_at) }}</p>
           </div>

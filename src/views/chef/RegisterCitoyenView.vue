@@ -72,6 +72,28 @@
               </div>
             </div>
 
+            <!-- Sélection de l'appartement (optionnel) -->
+            <hr>
+            <p class="text-muted small"><i class="fas fa-building"></i> {{ $t('apartments.apartment') }} ({{ $t('payments.other').replace('...','') }})</p>
+            <div class="row" v-if="geo.colline">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ $t('apartments.avenue') }}</label>
+                <select class="form-select" v-model="aptSelect.avenue" @change="onAvenueChange">
+                  <option value="">{{ $t('apartments.selectAvenue') }}</option>
+                  <option v-for="a in aptAvenues" :key="a" :value="a">{{ a }}</option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">{{ $t('apartments.apartment') }}</label>
+                <select class="form-select" v-model="aptSelect.apartment_id" :disabled="!aptList.length">
+                  <option value="">{{ $t('apartments.selectApartment') }}</option>
+                  <option v-for="apt in aptList" :key="apt.id" :value="apt.id">
+                    N°{{ apt.numero }} — {{ apt.owner?.nom }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
             <div class="mb-3">
               <label class="form-label"><i class="fas fa-home"></i> Adresse complète *</label>
               <textarea class="form-control" v-model="form.adresse" rows="2" required></textarea>
@@ -99,11 +121,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import api from '../../services/api'
 
 const form = reactive({ nom: '', telephone: '', email: '', adresse: '' })
 const geo = reactive({ province: '', commune: '', zone: '', colline: '' })
+const aptSelect = reactive({ avenue: '', apartment_id: '' })
+const aptAvenues = ref([])
+const aptList = ref([])
 const provinces = ref([])
 const communes = ref([])
 const zones = ref([])
@@ -146,8 +171,36 @@ function onCommuneChange() {
 function onZoneChange() {
   geo.colline = ''
   collines.value = []
+  aptSelect.avenue = ''; aptSelect.apartment_id = ''
+  aptAvenues.value = []; aptList.value = []
   if (geo.zone) loadChildren(geo.zone, 'collines')
 }
+
+async function loadAvenues() {
+  aptSelect.avenue = ''; aptSelect.apartment_id = ''
+  aptAvenues.value = []; aptList.value = []
+  if (!geo.colline) return
+  try {
+    const { data } = await api.get('/apartments/avenues', { params: { geographic_area_id: geo.colline } })
+    aptAvenues.value = data.avenues || []
+  } catch (e) { console.error(e) }
+}
+
+async function onAvenueChange() {
+  aptSelect.apartment_id = ''
+  aptList.value = []
+  if (!aptSelect.avenue) return
+  try {
+    const { data } = await api.get('/apartments/by-avenue', {
+      params: { geographic_area_id: geo.colline, avenue: aptSelect.avenue }
+    })
+    aptList.value = data.apartments || []
+  } catch (e) { console.error(e) }
+}
+
+watch(() => geo.colline, (val) => {
+  if (val) loadAvenues()
+})
 
 async function handleSubmit() {
   error.value = ''; loading.value = true
@@ -158,6 +211,7 @@ async function handleSubmit() {
   fd.append('role', 'citoyen')
   fd.append('geographic_area_id', geo.colline)
   fd.append('adresse', form.adresse)
+  if (aptSelect.apartment_id) fd.append('apartment_id', aptSelect.apartment_id)
   if (photoFile.value) fd.append('photo_profil', photoFile.value)
   try {
     const { data } = await api.post('/users', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
@@ -172,6 +226,8 @@ async function handleSubmit() {
 function resetForm() {
   form.nom = ''; form.telephone = ''; form.email = ''; form.adresse = ''
   geo.province = ''; geo.commune = ''; geo.zone = ''; geo.colline = ''
+  aptSelect.avenue = ''; aptSelect.apartment_id = ''
+  aptAvenues.value = []; aptList.value = []
   communes.value = []; zones.value = []; collines.value = []
   photoFile.value = null; createdPassword.value = ''; createdUser.value = ''; createdZone.value = ''; error.value = ''
 }

@@ -25,6 +25,9 @@
 
         <template v-if="user?.role === 'citoyen'">
           <div class="sidebar-section"><span class="sidebar-label">{{ $t('nav.mySpace') }}</span></div>
+          <router-link to="/apartments/mine" @click="close" :title="$t('nav.myApartments')" class="sidebar-link">
+            <i class="fas fa-building"></i> <span class="sidebar-label">{{ $t('nav.myApartments') }}</span>
+          </router-link>
           <router-link to="/reports/create" @click="close" :title="$t('nav.report')" class="sidebar-link">
             <i class="fas fa-exclamation-triangle"></i> <span class="sidebar-label">{{ $t('nav.report') }}</span>
           </router-link>
@@ -45,6 +48,9 @@
           </router-link>
           <router-link to="/households" @click="close" :title="$t('nav.households')" class="sidebar-link">
             <i class="fas fa-house-user"></i> <span class="sidebar-label">{{ $t('nav.households') }}</span>
+          </router-link>
+          <router-link to="/apartments" @click="close" :title="$t('nav.apartments')" class="sidebar-link">
+            <i class="fas fa-building"></i> <span class="sidebar-label">{{ $t('nav.apartments') }}</span>
           </router-link>
           <router-link to="/announcements/create" @click="close" :title="$t('nav.publishAnnouncement')" class="sidebar-link">
             <i class="fas fa-plus-circle"></i> <span class="sidebar-label">{{ $t('nav.publishAnnouncement') }}</span>

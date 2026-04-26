@@ -13,6 +13,11 @@
           <div class="card-body">
             <p><strong>{{ $t('dashboard.quarter') }}:</strong> {{ household.quartier }}</p>
             <p><strong>{{ $t('dashboard.address') }}:</strong> {{ household.adresse }}</p>
+            <div v-if="household.apartment" class="mt-2 p-2 bg-light rounded">
+              <small class="text-muted d-block mb-1"><i class="fas fa-building"></i> {{ $t('apartments.apartment') }}</small>
+              <p class="mb-1"><strong>{{ household.apartment.avenue }}, N°{{ household.apartment.numero }}</strong></p>
+              <small class="text-muted">{{ $t('apartments.owner') }}: {{ household.apartment.owner?.nom }}</small>
+            </div>
             <hr>
             <router-link to="/identity-card" class="btn btn-primary w-100">
               <i class="fas fa-id-card"></i> {{ $t('dashboard.myIdCard') }}
