@@ -507,7 +507,7 @@ export default {
   },
 
   footer: {
-    madeWith: 'Made with ❤️ by',
+    madeWith: '',
   },
 
   language: {

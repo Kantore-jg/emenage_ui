@@ -50,7 +50,7 @@
       </div>
 
       <footer class="main-footer">
-        &copy; 2025 Ubuzima Hub - {{ $t('footer.madeWith') }}
+        &copy; 2025 - {{ $t('footer.madeWith') }}
         <a href="https://www.linkedin.com/in/kantore-jean-gildas-94b43a345/" target="_blank">Kantox</a>
       </footer>
     </div>
