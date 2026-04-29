@@ -44,7 +44,7 @@ export default {
   },
 
   nav: {
-    brand: 'Ubuzima Hub',
+    brand: 'Menage',
     home: 'Accueil',
     announcements: 'Communiqués',
     dashboard: 'Dashboard',
@@ -384,7 +384,7 @@ export default {
     unavailable: "Carte d'Identité Non Disponible",
     republic: 'RÉPUBLIQUE DU BURUNDI',
     biometric: "CARTE D'IDENTITÉ BIOMÉTRIQUE",
-    hub: 'UBUZIMA HUB - BUJUMBURA',
+    hub: 'MENAGE - BUJUMBURA',
     fullName: 'NOM COMPLET',
     issuedOn: 'ÉMISE LE',
     secureDoc: 'DOCUMENT BIOMÉTRIQUE SÉCURISÉ',

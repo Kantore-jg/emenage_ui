@@ -44,7 +44,7 @@ export default {
   },
 
   nav: {
-    brand: 'Ubuzima Hub',
+    brand: 'Menage',
     home: 'Ahabanza',
     announcements: 'Amatangazo',
     dashboard: 'Ikibanza nyamukuru',
@@ -384,7 +384,7 @@ export default {
     unavailable: 'Ikarata y\'umwirondoro ntiboneka',
     republic: 'REPUBLIKA Y\'UBURUNDI',
     biometric: 'IKARATA Y\'UMWIRONDORO',
-    hub: 'UBUZIMA HUB - BUJUMBURA',
+    hub: 'MENAGE - BUJUMBURA',
     fullName: 'IZINA RYOSE',
     issuedOn: 'YATANZWE',
     secureDoc: 'ICETE C\'UMWIRONDORO KIGENWE',
