@@ -6,56 +6,65 @@
     </router-link>
   </div>
 
-  <div v-if="loading" class="text-center py-4">
-    <div class="spinner-border spinner-border-sm text-primary"></div> {{ $t('common.loading') }}
-  </div>
+  <div class="card">
+    <div class="card-header">
+      <i class="fas fa-list"></i> {{ $t('apartments.myApartments') }}
+      <span class="badge bg-primary ms-1">{{ apartments.length }}</span>
+    </div>
+    <div class="card-body">
+      <div v-if="loading" class="text-center py-4">
+        <div class="spinner-border spinner-border-sm text-primary"></div> {{ $t('common.loading') }}
+      </div>
 
-  <template v-else-if="apartments.length > 0">
-    <div class="row">
-      <div v-for="apt in apartments" :key="apt.id" class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <span><i class="fas fa-building text-primary"></i> N°{{ apt.numero }}</span>
-            <div class="dropdown">
-              <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                <i class="fas fa-ellipsis-v"></i>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                  <button class="dropdown-item" @click="editApt(apt)">
-                    <i class="fas fa-edit"></i> {{ $t('common.edit') }}
-                  </button>
-                </li>
-                <li>
-                  <button class="dropdown-item text-danger" @click="deleteApt(apt)">
-                    <i class="fas fa-trash"></i> {{ $t('common.delete') }}
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="card-body">
-            <p><strong><i class="fas fa-road"></i> {{ $t('apartments.avenue') }}:</strong> {{ apt.avenue }}</p>
-            <p><strong><i class="fas fa-map-marker-alt"></i> {{ $t('apartments.zone') }}:</strong> {{ apt.geographic_area?.name }}</p>
-            <p v-if="apt.description" class="text-muted small">{{ apt.description }}</p>
-            <hr>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="badge bg-primary"><i class="fas fa-home"></i> {{ apt.households_count || 0 }} {{ $t('nav.households') }}</span>
-              <small class="text-muted">{{ formatDate(apt.created_at) }}</small>
-            </div>
-          </div>
+      <template v-else-if="apartments.length > 0">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>{{ $t('apartments.avenue') }}</th>
+                <th>{{ $t('apartments.number') }}</th>
+                <th>{{ $t('apartments.zone') }}</th>
+                <th>{{ $t('apartments.description') }}</th>
+                <th>{{ $t('apartments.householdsCount') }}</th>
+                <th>{{ $t('common.date') }}</th>
+                <th>{{ $t('common.actions') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="apt in apartments" :key="apt.id">
+                <td>
+                  <span class="badge bg-info"><i class="fas fa-road"></i> {{ apt.avenue }}</span>
+                </td>
+                <td>N°{{ apt.numero }}</td>
+                <td><small>{{ apt.geographic_area?.name || '—' }}</small></td>
+                <td><small class="text-muted">{{ apt.description || '—' }}</small></td>
+                <td><span class="badge bg-primary">{{ apt.households_count || 0 }}</span></td>
+                <td><small>{{ formatDate(apt.created_at) }}</small></td>
+                <td>
+                  <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-primary" @click="editApt(apt)" :title="$t('common.edit')">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" @click="deleteApt(apt)" :title="$t('common.delete')">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+      </template>
+
+      <div v-else class="alert alert-info mb-0">
+        <i class="fas fa-info-circle"></i> {{ $t('apartments.noOwnApartment') }}
+        <router-link to="/apartments/create" class="alert-link">{{ $t('apartments.addApartment') }}</router-link>
       </div>
     </div>
-  </template>
-
-  <div v-else class="alert alert-info">
-    <i class="fas fa-info-circle"></i> {{ $t('apartments.noOwnApartment') }}
-    <router-link to="/apartments/create" class="alert-link">{{ $t('apartments.addApartment') }}</router-link>
   </div>
 
   <!-- Modal édition -->
-  <div class="modal fade" id="editAptModal" tabindex="-1">
+  <div class="modal fade" id="editAptModal" tabindex="-1" ref="editModalEl">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -64,6 +73,9 @@
         </div>
         <form @submit.prevent="updateApt">
           <div class="modal-body">
+            <div v-if="editError" class="alert alert-danger py-2">
+              <i class="fas fa-exclamation-circle"></i> {{ editError }}
+            </div>
             <div class="mb-3">
               <label class="form-label">{{ $t('apartments.avenue') }} *</label>
               <input v-model="editForm.avenue" type="text" class="form-control" required>
@@ -79,7 +91,10 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ $t('common.cancel') }}</button>
-            <button type="submit" class="btn btn-primary">{{ $t('common.save') }}</button>
+            <button type="submit" class="btn btn-primary" :disabled="saving">
+              <span v-if="saving" class="spinner-border spinner-border-sm me-1"></span>
+              {{ $t('common.save') }}
+            </button>
           </div>
         </form>
       </div>
@@ -89,12 +104,17 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { Modal } from 'bootstrap'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 
 const { t } = useI18n()
 const apartments = ref([])
 const loading = ref(false)
+const saving = ref(false)
+const editError = ref('')
+const editModalEl = ref(null)
+let editModal = null
 const editForm = reactive({ id: null, avenue: '', numero: '', description: '' })
 
 function formatDate(d) { return new Date(d).toLocaleDateString('fr-FR') }
@@ -109,25 +129,35 @@ async function loadData() {
 }
 
 function editApt(apt) {
+  editError.value = ''
   editForm.id = apt.id
   editForm.avenue = apt.avenue
   editForm.numero = apt.numero
   editForm.description = apt.description || ''
-  const modal = new window.bootstrap.Modal(document.getElementById('editAptModal'))
-  modal.show()
+  if (!editModal && editModalEl.value) {
+    editModal = new Modal(editModalEl.value)
+  }
+  editModal?.show()
 }
 
 async function updateApt() {
+  editError.value = ''
+  saving.value = true
   try {
     await api.put(`/apartments/${editForm.id}`, {
       avenue: editForm.avenue,
       numero: editForm.numero,
       description: editForm.description || null,
     })
-    document.querySelector('#editAptModal .btn-close')?.click()
+    editModal?.hide()
     await loadData()
   } catch (e) {
-    alert(e.response?.data?.message || t('errors.generic'))
+    editError.value = e.response?.data?.message
+      || e.response?.data?.errors?.numero?.[0]
+      || e.response?.data?.errors?.avenue?.[0]
+      || t('errors.generic')
+  } finally {
+    saving.value = false
   }
 }
 

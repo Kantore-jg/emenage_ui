@@ -18,10 +18,10 @@ const routes = [
   { path: '/announcements/:id/edit', name: 'announcement-edit', component: () => import('../views/announcements/EditView.vue'), meta: { auth: true } },
   { path: '/households', name: 'households', component: () => import('../views/households/ListView.vue'), meta: { auth: true } },
   { path: '/households/:id', name: 'household-detail', component: () => import('../views/households/DetailView.vue'), meta: { auth: true } },
-  { path: '/apartments', name: 'apartments', component: () => import('../views/apartments/ListView.vue'), meta: { auth: true } },
-  { path: '/apartments/create', name: 'apartment-create', component: () => import('../views/apartments/CreateView.vue'), meta: { auth: true } },
-  { path: '/apartments/mine', name: 'apartments-mine', component: () => import('../views/apartments/MineView.vue'), meta: { auth: true } },
-  { path: '/apartments/:id', name: 'apartment-detail', component: () => import('../views/apartments/DetailView.vue'), meta: { auth: true } },
+  { path: '/apartments', name: 'apartments', component: () => import('../views/apartments/ListView.vue'), meta: { auth: true, roles: ['collinaire', 'zonal', 'communal', 'provincial', 'ministere', 'admin'] } },
+  { path: '/apartments/create', name: 'apartment-create', component: () => import('../views/apartments/CreateView.vue'), meta: { auth: true, roles: ['citoyen'] } },
+  { path: '/apartments/mine', name: 'apartments-mine', component: () => import('../views/apartments/MineView.vue'), meta: { auth: true, roles: ['citoyen'] } },
+  { path: '/apartments/:id', name: 'apartment-detail', component: () => import('../views/apartments/DetailView.vue'), meta: { auth: true, roles: ['collinaire', 'zonal', 'communal', 'provincial', 'ministere', 'admin'] } },
   { path: '/reports/create', name: 'report-create', component: () => import('../views/reports/CreateView.vue'), meta: { auth: true } },
   { path: '/reports/mine', name: 'my-reports', component: () => import('../views/reports/MyReportsView.vue'), meta: { auth: true } },
   { path: '/calendar', name: 'calendar', component: () => import('../views/calendar/CalendarView.vue'), meta: { auth: true } },
@@ -49,11 +49,20 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   if (to.meta.auth && !token) {
     next({ name: 'login' })
-  } else if (to.name === 'login' && token) {
-    next({ name: 'home' })
-  } else {
-    next()
+    return
   }
+  if (to.name === 'login' && token) {
+    next({ name: 'home' })
+    return
+  }
+  if (to.meta.roles?.length) {
+    const user = JSON.parse(localStorage.getItem('user') || 'null')
+    if (!user || !to.meta.roles.includes(user.role)) {
+      next({ name: 'home' })
+      return
+    }
+  }
+  next()
 })
 
 export default router
