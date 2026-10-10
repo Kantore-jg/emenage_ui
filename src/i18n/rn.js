@@ -539,6 +539,8 @@ export default {
     searchPlaceholder: 'Rondera mu muhanda, inomero, nyeneinzu...',
     allAvenues: 'Imihanda yose',
     allApartments: 'Amazu yose',
+    optionalLabel: 'Inzu (bishobora)',
+    selectHillFirst: 'Banza uhitemo umutumba kugira ngo ubone umuhanda n\'inimero.',
     avenuePlaceholder: 'Urugero: Umuhanda w\'ubwigenge',
     numberPlaceholder: 'Urugero: 15',
     descriptionPlaceholder: 'Insiguro y\'inzu (ntibisabwa)',

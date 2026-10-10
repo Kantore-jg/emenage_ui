@@ -134,14 +134,14 @@
               <div class="row">
                 <div class="col-md-6 mb-3" v-if="provinces.length">
                   <label class="form-label">{{ $t('users.province') }} *</label>
-                  <select class="form-select" v-model="geo.province" @change="onProvinceChange">
+                  <select class="form-select" v-model="geo.province" @change="onProvinceChange" :disabled="geoLocked.province">
                     <option value="">{{ $t('users.selectOption') }}</option>
                     <option v-for="p in provinces" :key="p.id" :value="p.id">{{ p.name }}</option>
                   </select>
                 </div>
                 <div class="col-md-6 mb-3" v-if="communes.length && needsLevel('commune')">
                   <label class="form-label">{{ $t('users.commune') }} *</label>
-                  <select class="form-select" v-model="geo.commune" @change="onCommuneChange">
+                  <select class="form-select" v-model="geo.commune" @change="onCommuneChange" :disabled="geoLocked.commune || !communes.length">
                     <option value="">{{ $t('users.selectOption') }}</option>
                     <option v-for="c in communes" :key="c.id" :value="c.id">{{ c.name }}</option>
                   </select>
@@ -150,17 +150,56 @@
               <div class="row">
                 <div class="col-md-6 mb-3" v-if="zones.length && needsLevel('zone')">
                   <label class="form-label">{{ $t('users.zoneLabel') }} *</label>
-                  <select class="form-select" v-model="geo.zone" @change="onZoneChange">
+                  <select class="form-select" v-model="geo.zone" @change="onZoneChange" :disabled="geoLocked.zone || !zones.length">
                     <option value="">{{ $t('users.selectOption') }}</option>
                     <option v-for="z in zones" :key="z.id" :value="z.id">{{ z.name }}</option>
                   </select>
                 </div>
-                <div class="col-md-6 mb-3" v-if="collines.length && needsLevel('colline')">
+                <div class="col-md-6 mb-3" v-if="(collines.length || geo.colline) && needsLevel('colline')">
                   <label class="form-label">{{ $t('users.hill') }} *</label>
-                  <select class="form-select" v-model="geo.colline">
+                  <select class="form-select" v-model="geo.colline" :disabled="geoLocked.colline || !collines.length">
                     <option value="">{{ $t('users.selectOption') }}</option>
                     <option v-for="col in collines" :key="col.id" :value="col.id">{{ col.name }}</option>
                   </select>
+                </div>
+              </div>
+            </template>
+
+            <template v-if="form.role === 'citoyen'">
+              <hr>
+              <p class="text-muted small mb-2">
+                <i class="fas fa-building"></i> {{ $t('apartments.optionalLabel') }}
+              </p>
+              <p v-if="!geo.colline" class="text-muted small">
+                {{ $t('apartments.selectHillFirst') }}
+              </p>
+              <div class="row" v-else>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">{{ $t('apartments.avenue') }}</label>
+                  <select class="form-select" v-model="aptSelect.avenue" @change="onAptAvenueChange" :disabled="!aptAvenues.length">
+                    <option value="">{{ $t('apartments.selectAvenue') }}</option>
+                    <option v-for="a in aptAvenues" :key="a" :value="a">{{ a }}</option>
+                  </select>
+                  <small v-if="avenuesLoaded && !aptAvenues.length" class="text-muted d-block mt-1">
+                    {{ $t('apartments.noAvenueInArea') }}
+                  </small>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">{{ $t('apartments.number') }}</label>
+                  <select
+                    class="form-select"
+                    v-model="aptSelect.apartment_id"
+                    @change="onAptChange"
+                    :disabled="!aptSelect.avenue || !aptList.length"
+                  >
+                    <option value="">{{ $t('apartments.selectApartment') }}</option>
+                    <option v-for="apt in aptList" :key="apt.id" :value="apt.id">
+                      N°{{ apt.numero }}{{ apt.owner?.nom ? ` — ${apt.owner.nom}` : '' }}
+                    </option>
+                  </select>
+                  <small v-if="aptSelect.avenue && apartmentsLoaded && !aptList.length" class="text-muted d-block mt-1">
+                    {{ $t('apartments.noApartmentOnAvenue') }}
+                  </small>
                 </div>
               </div>
             </template>
@@ -294,14 +333,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
+import { useAuth } from '../../stores/auth'
 import { Modal } from 'bootstrap'
 import AppPagination from '../../components/AppPagination.vue'
 
 const { t } = useI18n()
+const { user } = useAuth()
 const apiBase = 'http://localhost:8000'
+const geoLocked = reactive({ province: false, commune: false, zone: false, colline: false })
 const users = ref([])
 const search = ref('')
 const filterRole = ref('')
@@ -311,6 +353,11 @@ const pagination = reactive({ current_page: 1, last_page: 1, per_page: 15, total
 const creatableRoles = ref([])
 const form = reactive({ nom: '', telephone: '', email: '', role: '', photo: null, adresse: '' })
 const geo = reactive({ province: '', commune: '', zone: '', colline: '' })
+const aptSelect = reactive({ avenue: '', apartment_id: '' })
+const aptAvenues = ref([])
+const aptList = ref([])
+const avenuesLoaded = ref(false)
+const apartmentsLoaded = ref(false)
 const provinces = ref([])
 const communes = ref([])
 const zones = ref([])
@@ -426,34 +473,169 @@ async function loadChildren(parentId, target) {
   } catch (e) { console.error(e) }
 }
 
-function onRoleChange() {
+function clearApartmentSelection() {
+  aptSelect.avenue = ''
+  aptSelect.apartment_id = ''
+  aptAvenues.value = []
+  aptList.value = []
+  avenuesLoaded.value = false
+  apartmentsLoaded.value = false
+}
+
+async function loadGeoChildren(parentId) {
+  try {
+    const { data } = await api.get('/geographic/areas', { params: { parent_id: parentId } })
+    return data.areas || []
+  } catch (e) {
+    console.error(e)
+    return []
+  }
+}
+
+async function prefillsGeoFromCurrentUser() {
+  geoLocked.province = false
+  geoLocked.commune = false
+  geoLocked.zone = false
+  geoLocked.colline = false
+
+  const u = user.value
+  const userAreaId = u?.geographic_area_id || u?.geographic_area?.id
+  if (!userAreaId || !needsGeoArea.value) {
+    if (needsGeoArea.value && !provinces.value.length) await loadProvinces()
+    return
+  }
+
+  try {
+    if (!provinces.value.length) await loadProvinces()
+    const { data } = await api.get(`/geographic/areas/${userAreaId}`)
+    const area = data.area
+    const ancestors = data.ancestors || []
+    const levelSlug = area?.level?.slug
+
+    const province = ancestors.find((a) => a.level?.slug === 'province')
+    const commune = ancestors.find((a) => a.level?.slug === 'commune')
+    const zone = ancestors.find((a) => a.level?.slug === 'zone')
+
+    if (levelSlug === 'province' || province) {
+      const pId = levelSlug === 'province' ? area.id : province.id
+      geo.province = pId
+      geoLocked.province = true
+      communes.value = await loadGeoChildren(pId)
+    }
+
+    if (levelSlug === 'commune' || commune) {
+      const cId = levelSlug === 'commune' ? area.id : commune.id
+      geo.commune = cId
+      geoLocked.commune = true
+      zones.value = await loadGeoChildren(cId)
+    }
+
+    if (levelSlug === 'zone' || zone) {
+      const zId = levelSlug === 'zone' ? area.id : zone.id
+      geo.zone = zId
+      geoLocked.zone = true
+      collines.value = await loadGeoChildren(zId)
+    }
+
+    if (levelSlug === 'colline') {
+      // Collinaire: sa colline est préremplie → le filtre appartement apparaît tout de suite
+      if (!collines.value.length && geo.zone) {
+        collines.value = await loadGeoChildren(geo.zone)
+      }
+      if (!collines.value.find((c) => c.id === area.id)) {
+        collines.value = [...collines.value, { id: area.id, name: area.name }]
+      }
+      geo.colline = area.id
+      geoLocked.colline = true
+    }
+  } catch (e) {
+    console.error(e)
+    if (!provinces.value.length) await loadProvinces()
+  }
+}
+
+async function onRoleChange() {
   geo.province = ''; geo.commune = ''; geo.zone = ''; geo.colline = ''
   communes.value = []; zones.value = []; collines.value = []
-  if (needsGeoArea.value && !provinces.value.length) loadProvinces()
+  clearApartmentSelection()
+  await prefillsGeoFromCurrentUser()
 }
 
 function onProvinceChange() {
   geo.commune = ''; geo.zone = ''; geo.colline = ''
   communes.value = []; zones.value = []; collines.value = []
+  clearApartmentSelection()
   if (geo.province) loadChildren(geo.province, 'communes')
 }
 
 function onCommuneChange() {
   geo.zone = ''; geo.colline = ''
   zones.value = []; collines.value = []
+  clearApartmentSelection()
   if (geo.commune) loadChildren(geo.commune, 'zones')
 }
 
 function onZoneChange() {
   geo.colline = ''
   collines.value = []
+  clearApartmentSelection()
   if (geo.zone) loadChildren(geo.zone, 'collines')
 }
+
+async function loadAptAvenues() {
+  aptSelect.avenue = ''
+  aptSelect.apartment_id = ''
+  aptAvenues.value = []
+  aptList.value = []
+  avenuesLoaded.value = false
+  apartmentsLoaded.value = false
+  if (!geo.colline || form.role !== 'citoyen') return
+  try {
+    const { data } = await api.get('/apartments/avenues', { params: { geographic_area_id: geo.colline } })
+    aptAvenues.value = data.avenues || []
+  } catch (e) { console.error(e) }
+  finally { avenuesLoaded.value = true }
+}
+
+async function onAptAvenueChange() {
+  aptSelect.apartment_id = ''
+  aptList.value = []
+  apartmentsLoaded.value = false
+  if (!aptSelect.avenue) return
+  try {
+    const { data } = await api.get('/apartments/by-avenue', {
+      params: { geographic_area_id: geo.colline, avenue: aptSelect.avenue },
+    })
+    aptList.value = data.apartments || []
+  } catch (e) { console.error(e) }
+  finally { apartmentsLoaded.value = true }
+}
+
+function onAptChange() {
+  const apt = aptList.value.find((a) => String(a.id) === String(aptSelect.apartment_id))
+  if (!apt) return
+  const collineName = collines.value.find((c) => String(c.id) === String(geo.colline))?.name || ''
+  form.adresse = [
+    collineName,
+    `Avenue ${apt.avenue}`,
+    `N°${apt.numero}`,
+  ].filter(Boolean).join(', ')
+}
+
+watch(() => geo.colline, (val) => {
+  if (val && form.role === 'citoyen') loadAptAvenues()
+  else clearApartmentSelection()
+})
 
 function resetCreateForm() {
   form.nom = ''; form.telephone = ''; form.email = ''; form.role = ''; form.photo = null; form.adresse = ''
   geo.province = ''; geo.commune = ''; geo.zone = ''; geo.colline = ''
   communes.value = []; zones.value = []; collines.value = []
+  geoLocked.province = false
+  geoLocked.commune = false
+  geoLocked.zone = false
+  geoLocked.colline = false
+  clearApartmentSelection()
   formError.value = ''; createdPassword.value = ''; createdZone.value = ''; createdEmailInfo.value = ''
 }
 
@@ -467,6 +649,7 @@ async function createUser() {
   if (form.photo) fd.append('photo_profil', form.photo)
   if (form.adresse) fd.append('adresse', form.adresse)
   if (selectedGeoAreaId.value) fd.append('geographic_area_id', selectedGeoAreaId.value)
+  if (form.role === 'citoyen' && aptSelect.apartment_id) fd.append('apartment_id', aptSelect.apartment_id)
   try {
     const { data } = await api.post('/users', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     createdPassword.value = data.password

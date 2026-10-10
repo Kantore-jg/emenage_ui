@@ -74,25 +74,43 @@
 
             <!-- Sélection de l'appartement (optionnel) -->
             <hr>
-            <p class="text-muted small"><i class="fas fa-building"></i> {{ $t('apartments.apartment') }} ({{ $t('payments.other').replace('...','') }})</p>
-            <div class="row" v-if="geo.colline">
-              <div class="col-md-6 mb-3">
-                <label class="form-label">{{ $t('apartments.avenue') }}</label>
-                <select class="form-select" v-model="aptSelect.avenue" @change="onAvenueChange">
-                  <option value="">{{ $t('apartments.selectAvenue') }}</option>
-                  <option v-for="a in aptAvenues" :key="a" :value="a">{{ a }}</option>
-                </select>
+            <p class="text-muted small mb-2">
+              <i class="fas fa-building"></i> {{ $t('apartments.optionalLabel') }}
+            </p>
+            <template v-if="geo.colline">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">{{ $t('apartments.avenue') }}</label>
+                  <select class="form-select" v-model="aptSelect.avenue" @change="onAvenueChange" :disabled="!aptAvenues.length">
+                    <option value="">{{ $t('apartments.selectAvenue') }}</option>
+                    <option v-for="a in aptAvenues" :key="a" :value="a">{{ a }}</option>
+                  </select>
+                  <small v-if="avenuesLoaded && !aptAvenues.length" class="text-muted d-block mt-1">
+                    {{ $t('apartments.noAvenueInArea') }}
+                  </small>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">{{ $t('apartments.number') }}</label>
+                  <select
+                    class="form-select"
+                    v-model="aptSelect.apartment_id"
+                    @change="onApartmentChange"
+                    :disabled="!aptSelect.avenue || !aptList.length"
+                  >
+                    <option value="">{{ $t('apartments.selectApartment') }}</option>
+                    <option v-for="apt in aptList" :key="apt.id" :value="apt.id">
+                      N°{{ apt.numero }}{{ apt.owner?.nom ? ` — ${apt.owner.nom}` : '' }}
+                    </option>
+                  </select>
+                  <small v-if="aptSelect.avenue && apartmentsLoaded && !aptList.length" class="text-muted d-block mt-1">
+                    {{ $t('apartments.noApartmentOnAvenue') }}
+                  </small>
+                </div>
               </div>
-              <div class="col-md-6 mb-3">
-                <label class="form-label">{{ $t('apartments.apartment') }}</label>
-                <select class="form-select" v-model="aptSelect.apartment_id" :disabled="!aptList.length">
-                  <option value="">{{ $t('apartments.selectApartment') }}</option>
-                  <option v-for="apt in aptList" :key="apt.id" :value="apt.id">
-                    N°{{ apt.numero }} — {{ apt.owner?.nom }}
-                  </option>
-                </select>
-              </div>
-            </div>
+            </template>
+            <p v-else class="text-muted small">
+              {{ $t('users.selectOption') }} — {{ $t('users.hill') }}
+            </p>
 
             <div class="mb-3">
               <label class="form-label"><i class="fas fa-home"></i> Adresse complète *</label>
@@ -129,6 +147,8 @@ const geo = reactive({ province: '', commune: '', zone: '', colline: '' })
 const aptSelect = reactive({ avenue: '', apartment_id: '' })
 const aptAvenues = ref([])
 const aptList = ref([])
+const avenuesLoaded = ref(false)
+const apartmentsLoaded = ref(false)
 const provinces = ref([])
 const communes = ref([])
 const zones = ref([])
@@ -159,47 +179,76 @@ async function loadChildren(parentId, target) {
 function onProvinceChange() {
   geo.commune = ''; geo.zone = ''; geo.colline = ''
   communes.value = []; zones.value = []; collines.value = []
+  clearApartmentSelection()
   if (geo.province) loadChildren(geo.province, 'communes')
 }
 
 function onCommuneChange() {
   geo.zone = ''; geo.colline = ''
   zones.value = []; collines.value = []
+  clearApartmentSelection()
   if (geo.commune) loadChildren(geo.commune, 'zones')
 }
 
 function onZoneChange() {
   geo.colline = ''
   collines.value = []
-  aptSelect.avenue = ''; aptSelect.apartment_id = ''
-  aptAvenues.value = []; aptList.value = []
+  clearApartmentSelection()
   if (geo.zone) loadChildren(geo.zone, 'collines')
 }
 
+function clearApartmentSelection() {
+  aptSelect.avenue = ''
+  aptSelect.apartment_id = ''
+  aptAvenues.value = []
+  aptList.value = []
+  avenuesLoaded.value = false
+  apartmentsLoaded.value = false
+}
+
 async function loadAvenues() {
-  aptSelect.avenue = ''; aptSelect.apartment_id = ''
-  aptAvenues.value = []; aptList.value = []
+  aptSelect.avenue = ''
+  aptSelect.apartment_id = ''
+  aptAvenues.value = []
+  aptList.value = []
+  avenuesLoaded.value = false
+  apartmentsLoaded.value = false
   if (!geo.colline) return
   try {
     const { data } = await api.get('/apartments/avenues', { params: { geographic_area_id: geo.colline } })
     aptAvenues.value = data.avenues || []
   } catch (e) { console.error(e) }
+  finally { avenuesLoaded.value = true }
 }
 
 async function onAvenueChange() {
   aptSelect.apartment_id = ''
   aptList.value = []
+  apartmentsLoaded.value = false
   if (!aptSelect.avenue) return
   try {
     const { data } = await api.get('/apartments/by-avenue', {
-      params: { geographic_area_id: geo.colline, avenue: aptSelect.avenue }
+      params: { geographic_area_id: geo.colline, avenue: aptSelect.avenue },
     })
     aptList.value = data.apartments || []
   } catch (e) { console.error(e) }
+  finally { apartmentsLoaded.value = true }
+}
+
+function onApartmentChange() {
+  const apt = aptList.value.find((a) => String(a.id) === String(aptSelect.apartment_id))
+  if (!apt) return
+  const collineName = collines.value.find((c) => String(c.id) === String(geo.colline))?.name || ''
+  form.adresse = [
+    collineName,
+    `Avenue ${apt.avenue}`,
+    `N°${apt.numero}`,
+  ].filter(Boolean).join(', ')
 }
 
 watch(() => geo.colline, (val) => {
   if (val) loadAvenues()
+  else clearApartmentSelection()
 })
 
 async function handleSubmit() {
@@ -226,8 +275,7 @@ async function handleSubmit() {
 function resetForm() {
   form.nom = ''; form.telephone = ''; form.email = ''; form.adresse = ''
   geo.province = ''; geo.commune = ''; geo.zone = ''; geo.colline = ''
-  aptSelect.avenue = ''; aptSelect.apartment_id = ''
-  aptAvenues.value = []; aptList.value = []
+  clearApartmentSelection()
   communes.value = []; zones.value = []; collines.value = []
   photoFile.value = null; createdPassword.value = ''; createdUser.value = ''; createdZone.value = ''; error.value = ''
 }

@@ -539,6 +539,8 @@ export default {
     searchPlaceholder: 'Rechercher par avenue, numéro, propriétaire...',
     allAvenues: 'Toutes les avenues',
     allApartments: 'Tous les appartements',
+    optionalLabel: 'Appartement (optionnel)',
+    selectHillFirst: 'Sélectionnez d\'abord la colline (quartier) pour filtrer avenue et numéro.',
     avenuePlaceholder: 'Ex: Avenue de la Liberté',
     numberPlaceholder: 'Ex: 15',
     descriptionPlaceholder: 'Description de l\'appartement (optionnel)',
